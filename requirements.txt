@@ -1,7 +1,16 @@
-datasets==2.14.4
-transformers==4.33.1
+# 2.14 results in error
+# https://stackoverflow.com/questions/77433096/notimplementederror-loading-a-dataset-cached-in-a-localfilesystem-is-not-suppor
+datasets==3.2.0
+# ERROR: Failed building wheel for tokenizers
+# updated the transformers version to fix.
+# https://github.com/huggingface/transformers/issues/2831
+#ValueError: `rope_scaling` must be a dictionary with with two fields, `type` and `factor`, got {'factor': 32.0, 'high_freq_factor': 4.0, 'low_freq_factor': 1.0, 'original_max_position_embeddings': 8192, 'rope_type': 'llama3'}
+# https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/discussions/15
+transformers==4.37.2
 sentencepiece==0.1.97
 sacrebleu==2.3.1
 accelerate==0.22.0
-bitsandbytes==0.41.1  # LLaMa 4bit
+# Replaced with AMD's version
+# https://rocm.docs.amd.com/en/latest/how-to/llm-fine-tuning-optimization/model-quantization.html#bitsandbytes
+#bitsandbytes==0.41.1  # LLaMa 4bit
 scipy==1.11.2
