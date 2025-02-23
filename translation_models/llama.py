@@ -13,7 +13,7 @@ from translation_models.utils_llama import language_names, one_shot_sentences
 
 class LLaMaTranslationModel(TranslationModel):
 
-    # Official templates used during instruction tuning of LLaMA
+    # Official templates used during instruction tuning of LLaMA 2
     TEMPLATE_0 = "{src_sent}\n\nTranslate to {tgt_lang}"
     TEMPLATE_1 = "{src_sent}\n\nCould you please translate this to {tgt_lang}?"
     TEMPLATE_2 = "{src_sent}\n\nTranslate this to {tgt_lang}?"

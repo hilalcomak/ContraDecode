@@ -105,6 +105,9 @@ def load_translation_model(name: str, **kwargs) -> TranslationModel:
     elif name == "llama-2-70b-chat":
         from translation_models.llama import LLaMaTranslationModel
         translation_model = LLaMaTranslationModel(model_name_or_path="meta-llama/Llama-2-70b-chat-hf", **kwargs)
+    elif name == "llama-3.2-3b-instruct":
+        from translation_models.llama import LLaMaTranslationModel
+        translation_model = LLaMaTranslationModel(model_name_or_path="meta-llama/Llama-3.2-3B-Instruct", **kwargs)
     else:
         raise NotImplementedError
     return translation_model

@@ -6,10 +6,10 @@ datasets==3.2.0
 # https://github.com/huggingface/transformers/issues/2831
 #ValueError: `rope_scaling` must be a dictionary with with two fields, `type` and `factor`, got {'factor': 32.0, 'high_freq_factor': 4.0, 'low_freq_factor': 1.0, 'original_max_position_embeddings': 8192, 'rope_type': 'llama3'}
 # https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct/discussions/15
-transformers==4.37.2
+transformers==4.49.0
 sentencepiece==0.1.97
 sacrebleu==2.3.1
-accelerate==0.22.0
+accelerate==0.26.0
 # Replaced with AMD's version
 # https://rocm.docs.amd.com/en/latest/how-to/llm-fine-tuning-optimization/model-quantization.html#bitsandbytes
 #bitsandbytes==0.41.1  # LLaMa 4bit
