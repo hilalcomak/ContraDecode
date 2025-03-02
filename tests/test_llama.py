@@ -11,35 +11,36 @@ from translation_models.llama import LLaMaTranslationModel, PromptTemplate
 class PromptTemplateTestCase(TestCase):
 
     def setUp(self) -> None:
-        self.template = PromptTemplate(system_prompt="You are an assistant.")
+        self.template = PromptTemplate("Llama-2", system_prompt="You are an assistant.")
         self.template.add_user_message("Hello, how are you?")
 
     def test_build_prompt(self):
+        self.template.add_initial_inst = False
         prompt = self.template.build_prompt()
         print(prompt)
-        self.assertEqual(prompt, """\
+        self.assertEqual("""\
 <s>[INST] <<SYS>>
 You are an assistant.
-<</SYS>> Hello, how are you? [/INST]""")
+<</SYS>> Hello, how are you? [/INST]""", prompt)
 
     def test_build_prompt__initial_inst(self):
         self.template.add_initial_inst = True
         prompt = self.template.build_prompt()
         print(prompt)
-        self.assertEqual(prompt, """\
+        self.assertEqual("""\
 <s>[INST] <<SYS>>
 You are an assistant.
-<</SYS>>[INST] Hello, how are you? [/INST]""")
+<</SYS>>[INST] Hello, how are you? [/INST]""", prompt)
 
     def test_get_user_messages(self):
         self.template.add_model_reply("I am fine, thank you.", includes_history=False)
         user_messages = self.template.get_user_messages()
-        self.assertEqual(user_messages, ["Hello, how are you?"])
+        self.assertEqual(["Hello, how are you?"], user_messages)
 
     def test_get_model_replies(self):
         self.template.add_model_reply("I am fine, thank you.", includes_history=False)
         model_replies = self.template.get_model_replies()
-        self.assertEqual(model_replies, ["I am fine, thank you."])
+        self.assertEqual(["I am fine, thank you."], model_replies)
 
 
 class LLaMaTranslationModelTestCase(TestCase):
@@ -47,8 +48,8 @@ class LLaMaTranslationModelTestCase(TestCase):
     def setUp(self) -> None:
         self.llama: LLaMaTranslationModel = load_translation_model("llama-2-7b-chat")
         # self.llama.one_shot = True
-        self.assertEqual(self.llama._lang_code_to_name("en"), "English")
-        self.assertEqual(self.llama._lang_code_to_name("de"), "German")
+        self.assertEqual("English", self.llama._lang_code_to_name("en"))
+        self.assertEqual("German", self.llama._lang_code_to_name("de"))
 
     def test_translate(self):
         source_sentences = [
