@@ -2,16 +2,50 @@ import logging
 from unittest import TestCase
 
 from translation_models import load_translation_model
-from translation_models.llama import LLaMaTranslationModel, PromptTemplate
+from translation_models.llama import LLaMaTranslationModel, PromptTemplateLlama2, PromptTemplateLlama3
 
 
 # logging.basicConfig(level=logging.INFO)
 
 
-class PromptTemplateTestCase(TestCase):
+class PromptTemplateLlama2TestCase(TestCase):
 
     def setUp(self) -> None:
-        self.template = PromptTemplate("Llama-2", system_prompt="You are an assistant.")
+        self.template = PromptTemplateLlama2(system_prompt="You are an assistant.")
+        self.template.add_user_message("Hello, how are you?")
+
+    def test_build_prompt(self):
+        self.template.add_initial_inst = False
+        prompt = self.template.build_prompt()
+        print(prompt)
+        self.assertEqual("""\
+<s>[INST] <<SYS>>
+You are an assistant.
+<</SYS>> Hello, how are you? [/INST]""", prompt)
+
+    def test_build_prompt__initial_inst(self):
+        self.template.add_initial_inst = True
+        prompt = self.template.build_prompt()
+        print(prompt)
+        self.assertEqual("""\
+<s>[INST] <<SYS>>
+You are an assistant.
+<</SYS>>[INST] Hello, how are you? [/INST]""", prompt)
+
+    def test_get_user_messages(self):
+        self.template.add_model_reply("I am fine, thank you.", includes_history=False)
+        user_messages = self.template.get_user_messages()
+        self.assertEqual(["Hello, how are you?"], user_messages)
+
+    def test_get_model_replies(self):
+        self.template.add_model_reply("I am fine, thank you.", includes_history=False)
+        model_replies = self.template.get_model_replies()
+        self.assertEqual(["I am fine, thank you."], model_replies)
+
+class PromptTemplateLlama3TestCase(TestCase):
+
+    def setUp(self) -> None:
+        self.template = PromptTemplateLlama3("Llama-3", system_prompt="You are an assistant.")
         self.template.add_user_message("Hello, how are you?")
 
     def test_build_prompt(self):

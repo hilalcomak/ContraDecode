@@ -4,29 +4,30 @@ from typing import Set, List, Union, Tuple, Optional
 import torch
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline, LogitsProcessorList
-
+from abc import ABC, abstractmethod
 from scripts.utils_run import FLORES101_CONVERT
 from translation_models import TranslationModel
 from translation_models.m2m100 import EnsembleLogitsProcessor
 from translation_models.utils_llama import language_names, one_shot_sentences
 
+# Official templates used during instruction tuning of LLaMA 2
+TEMPLATE_LLAMA2_0 = "{src_sent}\n\nTranslate to {tgt_lang}"
+TEMPLATE_LLAMA2_1 = "{src_sent}\n\nCould you please translate this to {tgt_lang}?"
+TEMPLATE_LLAMA2_2 = "{src_sent}\n\nTranslate this to {tgt_lang}?"
+TEMPLATE_LLAMA2_3 = "Translate to {tgt_lang}:\n\n{src_sent}"
+TEMPLATE_LLAMA2_4 = "Translate the following sentence to {tgt_lang}:\n{src_sent}"
+TEMPLATE_LLAMA2_5 = "How is \"{src_sent}\" said in {tgt_lang}?"
+TEMPLATE_LLAMA2_6 = "Translate \"{src_sent}\" to {tgt_lang}?"
+
+
+
+SYSTEM_PROMPT = """You are a machine translation system that translates sentences from {src_lang} to {tgt_lang}. You just respond with the translation, without any additional comments."""
 
 class LLaMaTranslationModel(TranslationModel):
 
-    # Official templates used during instruction tuning of LLaMA 2
-    TEMPLATE_0 = "{src_sent}\n\nTranslate to {tgt_lang}"
-    TEMPLATE_1 = "{src_sent}\n\nCould you please translate this to {tgt_lang}?"
-    TEMPLATE_2 = "{src_sent}\n\nTranslate this to {tgt_lang}?"
-    TEMPLATE_3 = "Translate to {tgt_lang}:\n\n{src_sent}"
-    TEMPLATE_4 = "Translate the following sentence to {tgt_lang}:\n{src_sent}"
-    TEMPLATE_5 = "How is \"{src_sent}\" said in {tgt_lang}?"
-    TEMPLATE_6 = "Translate \"{src_sent}\" to {tgt_lang}?"
-
-    SYSTEM_PROMPT = """You are a machine translation system that translates sentences from {src_lang} to {tgt_lang}. You just respond with the translation, without any additional comments."""
-
     def __init__(self,
                  model_name_or_path: str,
-                 message_template: str = TEMPLATE_0,
+                 message_template: str = None,
                  one_shot: bool = False,
                  padding: str = None,
                  **kwargs,
@@ -40,6 +41,8 @@ class LLaMaTranslationModel(TranslationModel):
             self.tokenizer.pad_token = "▁"
             if padding is None:
                 padding = "before_system_prompt"
+            if message_template is None:
+                self.message_template = TEMPLATE_LLAMA2_0
         elif "Llama-3" in self.model_name_or_path:
             # Llama 3.2 uses 3.1 format:
             #   https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_2/#-prompt-template-
@@ -53,10 +56,12 @@ class LLaMaTranslationModel(TranslationModel):
             # https: // www.llama.com / docs / model - cards - and -prompt - formats / llama3_1 /  # prompt-template
             if padding is None:
                 padding = "after_system_prompt"
+            if message_template is None:
+                self.message_template = TEMPLATE_LLAMA2_0
+                raise NotImplementedError("No default template for translation in llama3")
         else:
             raise NotImplementedError(f"Don't know how to pad model {self.model_name_or_path}")
         self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id)
-        self.message_template = message_template
         self.one_shot = one_shot
         assert padding in ["before_system_prompt", "after_system_prompt"]
         self.padding = padding
@@ -122,7 +127,7 @@ class LLaMaTranslationModel(TranslationModel):
 
         translations = []
         for source_sentence in tqdm(source_sentences):
-            prompt_template = PromptTemplate(system_prompt=system_prompt)
+            prompt_template = PromptTemplate(self.model_name_or_path, system_prompt=system_prompt)
             message = self.message_template.format(
                 src_lang=self._lang_code_to_name(self.src_lang),
                 tgt_lang=self._lang_code_to_name(self.tgt_lang),
@@ -132,7 +137,7 @@ class LLaMaTranslationModel(TranslationModel):
             prompt_template.add_user_message(message)
             prompt = prompt_template.build_prompt()
             prompt += "Sure, here's the translation:\n"
-            inputs = self.pipeline.preprocess(prompt)
+            inputs = self.pipeline.preprocess(prompt, self.model_name_or_path)
             output = self.pipeline.forward(
                 inputs,
                 eos_token_id=self.tokenizer.eos_token_id,
@@ -188,7 +193,7 @@ class LLaMaTranslationModel(TranslationModel):
                     ),
                     response=one_shot_sentences[FLORES101_CONVERT.get(tgt_lang, tgt_lang)],
                 )
-            prompt_template = PromptTemplate(system_prompt=system_prompt)
+            prompt_template = PromptTemplate(self.model_name_or_path, system_prompt=system_prompt)
             message = self.message_template.format(
                 src_lang=self._lang_code_to_name(src_lang),
                 tgt_lang=self._lang_code_to_name(tgt_lang),
@@ -259,22 +264,16 @@ class LLaMaTranslationModel(TranslationModel):
             translation = response_lines[0].strip()
         return translation
 
-
-class PromptTemplate:
-    """
-    Manages the conversation with a LLaMa chat model.
-
-    Adapted from https://github.com/samrawal/llama2_chat_templater
-    (c) Sam Rawal
-
-    Adapted to be more similar to https://huggingface.co/blog/llama2#how-to-prompt-llama-2
-    """
-
+class PromptTemplate(ABC):
     def __init__(self, system_prompt=None, add_initial_inst=True):
         self.system_prompt = system_prompt
         self.add_initial_inst = add_initial_inst
         self.user_messages = []
         self.model_replies = []
+
+    @abstractmethod
+    def build_prompt(self):
+        pass
 
     def add_user_message(self, message: str, return_prompt=True):
         self.user_messages.append(message)
@@ -296,6 +295,20 @@ class PromptTemplate:
 
     def get_model_replies(self, strip=True):
         return [x.strip() for x in self.model_replies] if strip else self.model_replies
+
+
+class PromptTemplateLlama2(PromptTemplate):
+    """
+    Manages the conversation with a LLaMa chat model.
+
+    Adapted from https://github.com/samrawal/llama2_chat_templater
+    (c) Sam Rawal
+
+    Adapted to be more similar to https://huggingface.co/blog/llama2#how-to-prompt-llama-2
+    """
+
+    def __init__(self, system_prompt=None, add_initial_inst=True):
+        super().__init__(system_prompt, add_initial_inst)
 
     def build_prompt(self):
         if len(self.user_messages) != len(self.model_replies) + 1:
@@ -325,3 +338,16 @@ class PromptTemplate:
             else:
                 raise NotImplementedError
         return SYS + CONVO
+
+class PromptTemplateLlama3(PromptTemplate):
+    """
+    Manages the conversation with a LLaMa3 chat model.
+
+    https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1/#-instruct-model-prompt-
+    """
+
+    def __init__(self, system_prompt=None, add_initial_inst=True):
+        super().__init__(system_prompt, add_initial_inst)
+
+    def build_prompt(self):
+        raise NotImplementedError("Not implemented.")
