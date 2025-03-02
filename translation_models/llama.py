@@ -28,7 +28,7 @@ class LLaMaTranslationModel(TranslationModel):
                  model_name_or_path: str,
                  message_template: str = TEMPLATE_0,
                  one_shot: bool = False,
-                 padding: str = "before_system_prompt",
+                 padding: str = None,
                  **kwargs,
                  ):
         super().__init__()
@@ -36,7 +36,26 @@ class LLaMaTranslationModel(TranslationModel):
         self.model = AutoModelForCausalLM.from_pretrained(model_name_or_path, device_map='auto', load_in_4bit=True,
                                                           torch_dtype=torch.bfloat16)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-        self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer)
+        if "Llama-2" in self.model_name_or_path:
+            self.tokenizer.pad_token = "▁"
+            if padding is None:
+                padding = "before_system_prompt"
+        elif "Llama-3" in self.model_name_or_path:
+            # Llama 3.2 uses 3.1 format:
+            #   https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_2/#-prompt-template-
+            # Llama 3.1 pad token:
+            #   https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1/#-special-tokens- <|finetune_right_pad_id|>
+            # Others discussing the same:
+            #   https://discuss.huggingface.co/t/how-to-set-the-pad-token-for-meta-llama-llama-3-models/103418
+            # Also update tokenizer to avoid having two different paddings.
+            self.tokenizer.pad_token = "<|finetune_right_pad_id|>"
+            # Llama 3 wants right padding:
+            # https: // www.llama.com / docs / model - cards - and -prompt - formats / llama3_1 /  # prompt-template
+            if padding is None:
+                padding = "after_system_prompt"
+        else:
+            raise NotImplementedError(f"Don't know how to pad model {self.model_name_or_path}")
+        self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id)
         self.message_template = message_template
         self.one_shot = one_shot
         assert padding in ["before_system_prompt", "after_system_prompt"]
@@ -184,8 +203,7 @@ class LLaMaTranslationModel(TranslationModel):
         inputs = [self.pipeline.preprocess(prompt) for prompt in prompts]
         input_ids = [x['input_ids'][0].tolist() for x in inputs]
         attention_mask = [x['attention_mask'][0].tolist() for x in inputs]
-
-        pad_token_id = self.tokenizer.get_vocab()["▁"]
+        pad_token_id = self.tokenizer.pad_token_id
         max_len = max(len(x) for x in input_ids)
         if self.padding == "before_system_prompt":
             input_ids = [[pad_token_id] * (max_len - len(x)) + x for x in input_ids]
@@ -200,7 +218,8 @@ class LLaMaTranslationModel(TranslationModel):
                 attention_mask[i] = (attention_mask[i][:second_inst_idx + 1] +
                                      [0] * (max_len - len(attention_mask[i])) +
                                      attention_mask[i][second_inst_idx + 1:])
-
+        else:
+            raise NotImplementedError(f"Padding for {self.padding} not implemented.")
         input_ids = torch.tensor(input_ids).to(self.model.device)
         attention_mask = torch.tensor(attention_mask).to(self.model.device)
         logits_processor = LogitsProcessorList([
@@ -305,5 +324,4 @@ class PromptTemplate:
                 CONVO += f" {self.user_messages[-1]} [/INST]"
             else:
                 raise NotImplementedError
-
         return SYS + CONVO
