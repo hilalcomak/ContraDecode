@@ -1,5 +1,5 @@
 import logging
-from typing import Set, List, Union, Tuple, Optional, override
+from typing import Set, List, Union, Tuple, Optional
 
 import torch
 from tqdm import tqdm
@@ -55,10 +55,11 @@ class LLaMaTranslationModel(TranslationModel):
             # Llama 3 wants right padding:
             # https: // www.llama.com / docs / model - cards - and -prompt - formats / llama3_1 /  # prompt-template
             if padding is None:
-                padding = "after_system_prompt"
+                padding = "before_system_prompt"
             if message_template is None:
                 self.message_template = TEMPLATE_LLAMA2_0
-                raise NotImplementedError("No default template for translation in llama3")
+                # TODO find the fine tuning templates used for tuning translations.
+                #raise NotImplementedError("No default template for translation in llama3")
         else:
             raise NotImplementedError(f"Don't know how to pad model {self.model_name_or_path}")
         self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id)
@@ -110,7 +111,7 @@ class LLaMaTranslationModel(TranslationModel):
 
         assert self.src_lang is not None
         assert self.tgt_lang is not None
-        system_prompt = self.SYSTEM_PROMPT.format(
+        system_prompt = SYSTEM_PROMPT.format(
             src_lang=self._lang_code_to_name(self.src_lang),
             tgt_lang=self._lang_code_to_name(self.tgt_lang),
         )
@@ -179,7 +180,7 @@ class LLaMaTranslationModel(TranslationModel):
         prompts = []
         prompt_templates = []
         for src_sent, src_lang, tgt_lang in zip(multi_source_sentences, src_langs, tgt_langs):
-            system_prompt = self.SYSTEM_PROMPT.format(
+            system_prompt = SYSTEM_PROMPT.format(
                 src_lang=self._lang_code_to_name(src_lang),
                 tgt_lang=self._lang_code_to_name(tgt_lang),
             )
@@ -213,7 +214,11 @@ class LLaMaTranslationModel(TranslationModel):
             input_ids = [[pad_token_id] * (max_len - len(x)) + x for x in input_ids]
             attention_mask = [[0] * (max_len - len(x)) + x for x in attention_mask]
         elif self.padding == "after_system_prompt":
-            sys_end_id = self.tokenizer.get_vocab()[">>"]
+            # TODO: This does not work for Llama3, move logic to PromptTemplate
+            if "Llama-2" in self.model_name_or_path:
+                sys_end_id = self.tokenizer.get_vocab()[">>"]
+            else:
+                raise NotImplementedError
             for i in range(len(input_ids)):
                 second_inst_idx = input_ids[i].index(sys_end_id, 1)
                 input_ids[i] = (input_ids[i][:second_inst_idx + 1] +
@@ -252,6 +257,7 @@ class LLaMaTranslationModel(TranslationModel):
         output = self.pipeline._ensure_tensor_on_device(output, device=torch.device("cpu"))
         output = self.pipeline.postprocess(output)
         output = output[0]['generated_text']
+        # TODO: This does not work for Llama3, move logic to PromptTemplate
         _, output = output.rsplit("[/INST]", maxsplit=1)
         logging.info(output)
         prompt_templates[0].add_model_reply(output, includes_history=False)
@@ -322,7 +328,6 @@ class PromptTemplateLlama2(PromptTemplate):
         super().__init__(system_prompt)
         self.add_initial_inst = add_initial_inst
 
-    @override
     def build_prompt(self, partial_model_reply=None):
         if len(self.user_messages) != len(self.model_replies) + 1:
             raise ValueError(
@@ -365,7 +370,6 @@ class PromptTemplateLlama3(PromptTemplate):
     def __init__(self, system_prompt=None):
         super().__init__(system_prompt)
 
-    @override
     def build_prompt(self, partial_model_reply=None):
         if len(self.user_messages) != len(self.model_replies) + 1:
             raise ValueError(
