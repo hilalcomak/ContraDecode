@@ -53,6 +53,7 @@ class MTTask:
 
             # randomly shuffled input to suppress hallucinations
             if source_contrastive:
+                assert source_weight is not None, "Must set source_weight"
                 for i in range(source_contrastive):
                     shuffled_sentences = copy.copy(source_sentences)
                     random.shuffle(shuffled_sentences)
@@ -63,6 +64,7 @@ class MTTask:
 
             # input with wrong target language indicator to suppress off-target translation
             if language_contrastive:
+                assert language_weight is not None, "Must set a language weight"
                 for offtarget in language_contrastive:
                     # ignore contrastive variants that are identical to true translation direction
                     if offtarget == self.tgt_lang:

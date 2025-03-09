@@ -1,5 +1,5 @@
 import logging
-from typing import Set, List, Union, Tuple, Optional
+from typing import Set, List, Union, Tuple, Optional, override
 
 import torch
 from tqdm import tqdm
@@ -127,7 +127,7 @@ class LLaMaTranslationModel(TranslationModel):
 
         translations = []
         for source_sentence in tqdm(source_sentences):
-            prompt_template = PromptTemplate(self.model_name_or_path, system_prompt=system_prompt)
+            prompt_template = PromptTemplate.new(self.model_name_or_path, system_prompt=system_prompt)
             message = self.message_template.format(
                 src_lang=self._lang_code_to_name(self.src_lang),
                 tgt_lang=self._lang_code_to_name(self.tgt_lang),
@@ -135,8 +135,7 @@ class LLaMaTranslationModel(TranslationModel):
             )
             logging.info(message)
             prompt_template.add_user_message(message)
-            prompt = prompt_template.build_prompt()
-            prompt += "Sure, here's the translation:\n"
+            prompt = prompt_template.build_prompt(partial_model_reply="Sure, here's the translation:\n")
             inputs = self.pipeline.preprocess(prompt, self.model_name_or_path)
             output = self.pipeline.forward(
                 inputs,
@@ -193,7 +192,7 @@ class LLaMaTranslationModel(TranslationModel):
                     ),
                     response=one_shot_sentences[FLORES101_CONVERT.get(tgt_lang, tgt_lang)],
                 )
-            prompt_template = PromptTemplate(self.model_name_or_path, system_prompt=system_prompt)
+            prompt_template = PromptTemplate.new(self.model_name_or_path, system_prompt=system_prompt)
             message = self.message_template.format(
                 src_lang=self._lang_code_to_name(src_lang),
                 tgt_lang=self._lang_code_to_name(tgt_lang),
@@ -265,15 +264,27 @@ class LLaMaTranslationModel(TranslationModel):
         return translation
 
 class PromptTemplate(ABC):
-    def __init__(self, system_prompt=None, add_initial_inst=True):
+    def __init__(self, system_prompt=None):
         self.system_prompt = system_prompt
-        self.add_initial_inst = add_initial_inst
         self.user_messages = []
         self.model_replies = []
 
     @abstractmethod
-    def build_prompt(self):
-        pass
+    def build_prompt(self, partial_model_reply=None):
+        """
+        :partial_model_reply: adds a partial model reply to the prompt.
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def new(model_name, *args, **kwargs):
+        if "Llama-2" in model_name:
+            return PromptTemplateLlama2(*args, **kwargs)
+        elif "Llama-3" in model_name:
+            return PromptTemplateLlama3(*args, **kwargs)
+        else:
+            raise NotImplementedError
+
 
     def add_user_message(self, message: str, return_prompt=True):
         self.user_messages.append(message)
@@ -308,9 +319,11 @@ class PromptTemplateLlama2(PromptTemplate):
     """
 
     def __init__(self, system_prompt=None, add_initial_inst=True):
-        super().__init__(system_prompt, add_initial_inst)
+        super().__init__(system_prompt)
+        self.add_initial_inst = add_initial_inst
 
-    def build_prompt(self):
+    @override
+    def build_prompt(self, partial_model_reply=None):
         if len(self.user_messages) != len(self.model_replies) + 1:
             raise ValueError(
                 "Error: Expected len(user_messages) = len(model_replies) + 1. Add a new user message!"
@@ -337,6 +350,8 @@ class PromptTemplateLlama2(PromptTemplate):
                 CONVO += f" {self.user_messages[-1]} [/INST]"
             else:
                 raise NotImplementedError
+        if partial_model_reply:
+            return SYS + CONVO + partial_model_reply
         return SYS + CONVO
 
 class PromptTemplateLlama3(PromptTemplate):
@@ -344,10 +359,27 @@ class PromptTemplateLlama3(PromptTemplate):
     Manages the conversation with a LLaMa3 chat model.
 
     https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1/#-instruct-model-prompt-
+    https://ollama.com/library/llama3.2/blobs/966de95ca8a6
     """
 
-    def __init__(self, system_prompt=None, add_initial_inst=True):
-        super().__init__(system_prompt, add_initial_inst)
+    def __init__(self, system_prompt=None):
+        super().__init__(system_prompt)
 
-    def build_prompt(self):
-        raise NotImplementedError("Not implemented.")
+    @override
+    def build_prompt(self, partial_model_reply=None):
+        if len(self.user_messages) != len(self.model_replies) + 1:
+            raise ValueError(
+                "Error: Expected len(user_messages) = len(model_replies) + 1. Add a new user message!"
+            )
+        result = ""
+        if self.system_prompt is not None:
+            result = f"<|start_header_id|>system<|end_header_id|>\n{self.system_prompt}<|eot_id|>"
+        for user_message, assistant_message in zip(self.user_messages, self.model_replies):
+            result += f"""<|start_header_id|>user<|end_header_id|>
+{user_message}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+{assistant_message}<|eot_id|>"""
+        if len(self.user_messages) > len(self.model_replies):
+            result += f"<|start_header_id|>user<|end_header_id|>\n{self.user_messages[-1]}<|eot_id|>"
+        if partial_model_reply:
+            return result + f"<|start_header_id|>assistant<|end_header_id|>{partial_model_reply}<|eot_id|>"
+        return result
