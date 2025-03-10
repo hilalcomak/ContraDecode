@@ -49,7 +49,6 @@ class PromptTemplateLlama3TestCase(TestCase):
         self.template.add_user_message("Hello, how are you?")
 
     def test_build_prompt(self):
-        self.template.add_initial_inst = False
         prompt = self.template.build_prompt()
         self.assertEqual("""\
 <|start_header_id|>system<|end_header_id|>
@@ -57,7 +56,6 @@ You are an assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>
 Hello, how are you?<|eot_id|>""", prompt)
 
     def test_build_prompt_partial_response(self):
-        self.template.add_initial_inst = False
         prompt = self.template.build_prompt("I am Mario")
         self.assertEqual("""\
 <|start_header_id|>system<|end_header_id|>
@@ -65,6 +63,9 @@ You are an assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>
 Hello, how are you?<|eot_id|><|start_header_id|>assistant<|end_header_id|>I am Mario""",
                              prompt)
     #TODO add more tests
+
+    def test_extract_model_response(self):
+        pass
 
     def test_get_user_messages(self):
         self.template.add_model_reply("I am fine, thank you.", includes_history=False)

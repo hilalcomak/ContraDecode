@@ -52,6 +52,7 @@ class LLaMaTranslationModel(TranslationModel):
             #   https://discuss.huggingface.co/t/how-to-set-the-pad-token-for-meta-llama-llama-3-models/103418
             # Also update tokenizer to avoid having two different paddings.
             self.tokenizer.pad_token = "<|finetune_right_pad_id|>"
+            #self.tokenizer.pad_token = self.tokenizer.eos_token
             # Llama 3 wants right padding:
             # https: // www.llama.com / docs / model - cards - and -prompt - formats / llama3_1 /  # prompt-template
             if padding is None:
@@ -62,7 +63,7 @@ class LLaMaTranslationModel(TranslationModel):
                 #raise NotImplementedError("No default template for translation in llama3")
         else:
             raise NotImplementedError(f"Don't know how to pad model {self.model_name_or_path}")
-        self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id)
+        self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id, return_full_text=False)
         self.one_shot = one_shot
         assert padding in ["before_system_prompt", "after_system_prompt"]
         self.padding = padding
@@ -137,7 +138,9 @@ class LLaMaTranslationModel(TranslationModel):
             logging.info(message)
             prompt_template.add_user_message(message)
             prompt = prompt_template.build_prompt(partial_model_reply="Sure, here's the translation:\n")
-            inputs = self.pipeline.preprocess(prompt, self.model_name_or_path)
+            print(prompt)
+            raise NotImplementedError
+            inputs = self.pipeline.preprocess(prompt)#, self.model_name_or_path)
             output = self.pipeline.forward(
                 inputs,
                 eos_token_id=self.tokenizer.eos_token_id,
@@ -148,9 +151,14 @@ class LLaMaTranslationModel(TranslationModel):
                 do_sample=False,
                 temperature=1.0,
                 top_p=1.0,
+                return_full_text=False
             )
             output = self.pipeline.postprocess(output)
             output = output[0]['generated_text']
+            print("OUTPUT")
+            print(output)
+            print("=============")
+            raise NotImplementedError
             logging.info(output)
             prompt_template.add_model_reply(output, includes_history=True)
             response = prompt_template.get_model_replies(strip=True)[0]
@@ -200,9 +208,10 @@ class LLaMaTranslationModel(TranslationModel):
                 src_sent=src_sent,
             )
             prompt_template.add_user_message(message)
-            prompt = prompt_template.build_prompt()
-            prompt += "Sure, here's the translation:\n"
-            prompts.append(prompt)
+            print("PROMPT IS")
+            print(prompt_template.build_prompt("Sure, here's the translation:\n"))
+            print("=========================")
+            prompts.append(prompt_template.build_prompt("Sure, here's the translation:\n"))
             prompt_templates.append(prompt_template)
 
         inputs = [self.pipeline.preprocess(prompt) for prompt in prompts]
@@ -258,7 +267,8 @@ class LLaMaTranslationModel(TranslationModel):
         output = self.pipeline.postprocess(output)
         output = output[0]['generated_text']
         # TODO: This does not work for Llama3, move logic to PromptTemplate
-        _, output = output.rsplit("[/INST]", maxsplit=1)
+        prompt_templates[0].extract_model_response(output)
+        print(f"Translation be:{output}")
         logging.info(output)
         prompt_templates[0].add_model_reply(output, includes_history=False)
         response = prompt_templates[0].get_model_replies(strip=True)[0]
@@ -282,6 +292,10 @@ class PromptTemplate(ABC):
         """
         raise NotImplementedError
 
+    def extract_model_response(self, model_output:str):
+        """"""
+        raise NotImplementedError
+
     @staticmethod
     def new(model_name, *args, **kwargs):
         if "Llama-2" in model_name:
@@ -290,7 +304,6 @@ class PromptTemplate(ABC):
             return PromptTemplateLlama3(*args, **kwargs)
         else:
             raise NotImplementedError
-
 
     def add_user_message(self, message: str, return_prompt=True):
         self.user_messages.append(message)
@@ -359,6 +372,10 @@ class PromptTemplateLlama2(PromptTemplate):
             return SYS + CONVO + partial_model_reply
         return SYS + CONVO
 
+    def extract_model_response(self, model_output:str):
+        _, output = model_output.rsplit("[/INST]", maxsplit=1)
+        return output
+
 class PromptTemplateLlama3(PromptTemplate):
     """
     Manages the conversation with a LLaMa3 chat model.
@@ -377,13 +394,17 @@ class PromptTemplateLlama3(PromptTemplate):
             )
         result = ""
         if self.system_prompt is not None:
-            result = f"<|start_header_id|>system<|end_header_id|>\n{self.system_prompt}<|eot_id|>"
+            result = f"<|start_header_id|> system <|end_header_id|> \n{self.system_prompt} <|eot_id|> "
         for user_message, assistant_message in zip(self.user_messages, self.model_replies):
-            result += f"""<|start_header_id|>user<|end_header_id|>
-{user_message}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+            result += f""" <|start_header_id|> user <|end_header_id|> 
+{user_message} <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 {assistant_message}<|eot_id|>"""
         if len(self.user_messages) > len(self.model_replies):
             result += f"<|start_header_id|>user<|end_header_id|>\n{self.user_messages[-1]}<|eot_id|>"
         if partial_model_reply:
-            return result + f"<|start_header_id|>assistant<|end_header_id|>{partial_model_reply}<|eot_id|>"
+            return result + f"<|start_header_id|>assistant<|end_header_id|>{partial_model_reply}"
         return result
+
+    def extract_model_response(self, model_output:str):
+        # TODO: this makes computer sad.
+        return model_output.rsplit("assistantSure, here's the translation:", maxsplit=1)[1]
