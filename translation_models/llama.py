@@ -267,9 +267,7 @@ class LLaMaTranslationModel(TranslationModel):
         output = self.pipeline._ensure_tensor_on_device(output, device=torch.device("cpu"))
         output = self.pipeline.postprocess(output)
         output = output[0]['generated_text']
-        # TODO: This does not work for Llama3, move logic to PromptTemplate
-        prompt_templates[0].extract_model_response(output)
-        print(f"Translation be:{output}")
+        output = prompt_templates[0].extract_model_response(output)
         #logging.info(output)
         prompt_templates[0].add_model_reply(output, includes_history=False)
         response = prompt_templates[0].get_model_replies(strip=True)[0]
@@ -412,4 +410,5 @@ class PromptTemplateLlama3(PromptTemplate):
 
     def extract_model_response(self, model_output:str):
         # TODO: this makes computer sad.
-        return model_output.rsplit("assistantSure, here's the translation:", maxsplit=1)[1]
+        ret = model_output.rsplit("assistantSure, here's the translation:", maxsplit=1)[1]
+        return "Sure, here's the translation:" + ret
