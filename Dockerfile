@@ -17,9 +17,9 @@ RUN cmake -DCOMPUTE_BACKEND=hip -S .
 RUN make
 RUN python setup.py install
 
-RUN pip install "huggingface_hub[cli]"
+RUN pip install --root-user-action "huggingface_hub[cli]"
 ADD requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip install --root-user-action -r /tmp/requirements.txt
 VOLUME ["/data"]
 WORKDIR /data
 CMD ["bash"]
