@@ -2,7 +2,7 @@ import logging
 
 import translation_models
 from mt_task import MTTask
-from translation_models import load_translation_model
+from translation_models import load_translation_model, valid_translation_models
 from scripts.utils_run import FLORES101_CONVERT, M2M100_TYPES, IGNORE_FOR_FLORES, FAMILIES
 from itertools import combinations
 import argparse
@@ -28,16 +28,24 @@ def main(args):
     for task in tasks:
         if args.source_contrastive or args.language_contrastive:
             print(f"Evaluating {task} multi_source")
-            out_path = task.evaluate(model.translate_multi_source, 'contrastive', args.source_contrastive, args.source_weight, args.language_contrastive, args.language_weight)
+            out_path = task.evaluate(
+                model.translate_multi_source,
+                'contrastive',
+                args.source_contrastive,
+                args.source_weight,
+                args.language_contrastive,
+                args.language_weight,
+                prefix=args.model_path,
+                small_dev=args.small_dev)
             print(f"Translations saved in {out_path}")
         else:
             print(f"Evaluating {task} direct")
-            out_path = task.evaluate(model.translate, 'direct')
+            out_path = task.evaluate(model.translate, 'direct', prefix=args.model_path, small_dev=args.small_dev)
             print(f"Translations saved in {out_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", type=str, default="",
+    parser.add_argument("--model_path", type=str, default="", choices=valid_translation_models(),
                         help="The HF model path")
     parser.add_argument("--language_pairs", type=str, default="",
                         help="language pairs")
@@ -51,5 +59,7 @@ if __name__ == "__main__":
                         help="weight of contrastive variants with wrong language indicator. Default -0.1. If multiple contrastive inputs are used, this specifies weight assigned to each of them individually.")
     parser.add_argument("--oneshot", action='store_true', default=False,
                         help="For LLaMa: provide one-shot translation example")
+    parser.add_argument("--small-dev", action=argparse.BooleanOptionalAction,
+                        help="Use a small (5) subset of data, for development purposes.")
     args = parser.parse_args()
     main(args)

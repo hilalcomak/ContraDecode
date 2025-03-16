@@ -82,6 +82,9 @@ class TranslationModel:
 
         return translation
 
+def valid_translation_models():
+    """Valid models to use"""
+    return {"m2m100_418M", "m2m100_1.2B", "small100", "llama-2-7b-chat", "llama-2-13b-chat", "llama-2-70b-chat", "llama-3.2-3b-instruct"}
 
 def load_translation_model(name: str, **kwargs) -> TranslationModel:
     """

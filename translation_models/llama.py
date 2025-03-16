@@ -63,7 +63,7 @@ class LLaMaTranslationModel(TranslationModel):
                 #raise NotImplementedError("No default template for translation in llama3")
         else:
             raise NotImplementedError(f"Don't know how to pad model {self.model_name_or_path}")
-        self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id, return_full_text=False)
+        self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id, return_full_text=False, batch_size=4, add_special_tokens=False)
         self.one_shot = one_shot
         assert padding in ["before_system_prompt", "after_system_prompt"]
         self.padding = padding
@@ -138,12 +138,12 @@ class LLaMaTranslationModel(TranslationModel):
             logging.info(message)
             prompt_template.add_user_message(message)
             prompt = prompt_template.build_prompt(partial_model_reply="Sure, here's the translation:\n")
-            print(prompt)
+            #print(prompt)
             raise NotImplementedError
             inputs = self.pipeline.preprocess(prompt)#, self.model_name_or_path)
             output = self.pipeline.forward(
                 inputs,
-                eos_token_id=self.tokenizer.eos_token_id,
+                #eos_token_id=self.tokenizer.eos_token_id,
                 max_length=1200,  # Max ref length across Flores-101 is 960
                 remove_invalid_values=True,
                 num_beams=num_beams,
@@ -155,9 +155,9 @@ class LLaMaTranslationModel(TranslationModel):
             )
             output = self.pipeline.postprocess(output)
             output = output[0]['generated_text']
-            print("OUTPUT")
-            print(output)
-            print("=============")
+            #print("OUTPUT")
+            #print(output)
+            #print("=============")
             raise NotImplementedError
             logging.info(output)
             prompt_template.add_model_reply(output, includes_history=True)
@@ -208,9 +208,9 @@ class LLaMaTranslationModel(TranslationModel):
                 src_sent=src_sent,
             )
             prompt_template.add_user_message(message)
-            print("PROMPT IS")
-            print(prompt_template.build_prompt("Sure, here's the translation:\n"))
-            print("=========================")
+            #print("PROMPT IS")
+            #print(prompt_template.build_prompt("Sure, here's the translation:\n"))
+            #print("=========================")
             prompts.append(prompt_template.build_prompt("Sure, here's the translation:\n"))
             prompt_templates.append(prompt_template)
 
@@ -238,6 +238,7 @@ class LLaMaTranslationModel(TranslationModel):
                                      attention_mask[i][second_inst_idx + 1:])
         else:
             raise NotImplementedError(f"Padding for {self.padding} not implemented.")
+        # TODO: sending all the dataset to GPU evicts the model if only 16gb available!
         input_ids = torch.tensor(input_ids).to(self.model.device)
         attention_mask = torch.tensor(attention_mask).to(self.model.device)
         logits_processor = LogitsProcessorList([
@@ -269,7 +270,7 @@ class LLaMaTranslationModel(TranslationModel):
         # TODO: This does not work for Llama3, move logic to PromptTemplate
         prompt_templates[0].extract_model_response(output)
         print(f"Translation be:{output}")
-        logging.info(output)
+        #logging.info(output)
         prompt_templates[0].add_model_reply(output, includes_history=False)
         response = prompt_templates[0].get_model_replies(strip=True)[0]
         response_lines = response.replace("Sure, here's the translation:", "").strip().split("\n")
@@ -335,6 +336,9 @@ class PromptTemplateLlama2(PromptTemplate):
     (c) Sam Rawal
 
     Adapted to be more similar to https://huggingface.co/blog/llama2#how-to-prompt-llama-2
+
+
+    https://www.llama.com/docs/model-cards-and-prompt-formats/meta-llama-2/
     """
 
     def __init__(self, system_prompt=None, add_initial_inst=True):
@@ -382,6 +386,7 @@ class PromptTemplateLlama3(PromptTemplate):
 
     https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1/#-instruct-model-prompt-
     https://ollama.com/library/llama3.2/blobs/966de95ca8a6
+    https://www.llama.com/docs/model-cards-and-prompt-formats/meta-llama-3/
     """
 
     def __init__(self, system_prompt=None):

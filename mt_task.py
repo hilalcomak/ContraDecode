@@ -34,10 +34,21 @@ class MTTask:
     def __str__(self):
         return f"{self.testset}-{self.src_lang}-{self.tgt_lang}"
 
-    def evaluate(self, translation_method: callable, type='direct', source_contrastive=1, source_weight=None, language_contrastive=None, language_weight=None) -> Path:
+    def evaluate(self,
+                 translation_method: callable,
+                 type='direct',
+                 source_contrastive=1,
+                 source_weight=None,
+                 language_contrastive=None,
+                 language_weight=None,
+                 prefix=None,
+                 small_dev=False) -> Path:
 
         ## load FLORES dataset
         source_sentences = load_dataset('gsarti/flores_101',self.load_converter[self.src_lang])['devtest']['sentence']
+        if small_dev:
+            assert isinstance(source_sentences, list)
+            source_sentences = source_sentences[:5]
 
         if type == 'direct':
             translations = translation_method(
@@ -91,13 +102,15 @@ class MTTask:
                 translations.append(translation)
         else:
             raise NotImplementedError
-
+        file_name = ""
+        if prefix:
+            file_name = f"{prefix}-"
         if type == 'direct':
-            file_name = 'direct'
+            file_name = file_name+'direct'
         elif type == 'contrastive':
-            file_name = 'contrastive-{0}-{1}'.format(source_contrastive, source_weight)
+            file_name = file_name+f'contrastive-{source_contrastive}-{source_weight}'
             if language_contrastive:
-                file_name += "-lang-{0}-{1}".format('+'.join(language_contrastive), language_weight)
+                file_name += f"-lang-{'+'.join(language_contrastive)}-{language_weight}"
         else:
             raise NotImplementedError
 
