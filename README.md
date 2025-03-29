@@ -59,6 +59,10 @@ spBLEU:
 sacrebleu ref.txt < output.txt --tokenize flores101
 ```
 
+Comet:
+```
+comet-score -s src.txt -t hyp1.txt -r ref.txt
+```
 
 ## Reference
 

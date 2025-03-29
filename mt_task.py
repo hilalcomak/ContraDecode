@@ -1,11 +1,7 @@
-import logging
-import subprocess
-import tempfile
 import random
 import copy
 from pathlib import Path
 from scripts.utils_run import FLORES101_CONVERT
-from sacrebleu import get_source_file
 from datasets import load_dataset
 from tqdm import tqdm
 import os
@@ -43,6 +39,17 @@ class MTTask:
                  language_weight=None,
                  prefix=None,
                  small_dev=False) -> Path:
+
+        if not os.path.isfile(str(self.out_dir)+"/"+"ref.text"):
+            target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['devtest'][
+                'sentence']
+            with open(str(self.out_dir) + "/" + "ref.txt", 'w') as f:
+                f.write("\n".join(target_sentences))
+        if not os.path.isfile(str(self.out_dir)+"/"+"src.text"):
+            target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.src_lang])['devtest'][
+                'sentence']
+            with open(str(self.out_dir) + "/" + "src.txt", 'w') as f:
+                f.write("\n".join(target_sentences))
 
         ## load FLORES dataset
         source_sentences = load_dataset('gsarti/flores_101',self.load_converter[self.src_lang])['devtest']['sentence']
@@ -116,11 +123,4 @@ class MTTask:
 
         with open(str(self.out_dir)+"/"+file_name+".txt", 'w') as f:
             f.write("\n".join(translations))
-
-        if not os.path.isfile(str(self.out_dir)+"/"+"ref.text"):
-            target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['devtest'][
-                'sentence']
-            with open(str(self.out_dir) + "/" + "ref.txt", 'w') as f:
-                f.write("\n".join(target_sentences))
-
         return Path(f.name)
