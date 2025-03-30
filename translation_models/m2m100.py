@@ -155,8 +155,10 @@ class M2M100Model(TranslationModel):
                                 tgt_langs: List[str],
                                 src_weights: Optional[List[float]] = None,
                                 num_beams: int = 1,
+                                prompt_templates: Optional[List[str]] = None,
                                 **kwargs,
                                 ) -> str:
+        assert prompt_templates is None, "Contrastive prompts nots supported for small100"
         assert len(multi_source_sentences) == len(src_langs) == len(tgt_langs)
         #src_weights = [1, -0.1]
         if src_weights is not None:

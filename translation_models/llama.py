@@ -1,5 +1,6 @@
 import logging
 from typing import Set, List, Union, Tuple, Optional
+from pprint import pprint
 
 import torch
 from tqdm import tqdm
@@ -176,25 +177,31 @@ class LLaMaTranslationModel(TranslationModel):
                                 tgt_langs: List[str],
                                 src_weights: Optional[List[float]] = None,
                                 num_beams: int = 1,
+                                prompt_templates: Optional[List[str]] = None,
                                 **kwargs,
                                 ) -> str:
         assert len(multi_source_sentences) == len(src_langs) == len(tgt_langs)
         if src_weights is not None:
             assert len(src_weights) == len(multi_source_sentences)
+        if prompt_templates is not None:
+            assert len(prompt_templates) == len(multi_source_sentences)
+        else:
+            prompt_templates = [None for _ in range(len(multi_source_sentences))]
+        prompt_templates = [pt if pt else self.message_template for pt in prompt_templates]
         if num_beams != 1:
             logging.warning(f"Beam search is not supported by LLaMaTranslationModel. Setting num_beams to 1.")
             num_beams = 1
 
         prompts = []
-        prompt_templates = []
-        for src_sent, src_lang, tgt_lang in zip(multi_source_sentences, src_langs, tgt_langs):
+        model_templates = []
+        for src_sent, src_lang, tgt_lang, msg_tmplt in zip(multi_source_sentences, src_langs, tgt_langs, prompt_templates):
             system_prompt = SYSTEM_PROMPT.format(
                 src_lang=self._lang_code_to_name(src_lang),
                 tgt_lang=self._lang_code_to_name(tgt_lang),
             )
             if self.one_shot:
                 system_prompt += "\n\nExample instruction:\n{instruction}\n\nExample response:\nSure, here's the translation:\n{response}".format(
-                    instruction=self.message_template.format(
+                    instruction=msg_tmplt.format(
                         src_lang=self._lang_code_to_name(src_lang),
                         tgt_lang=self._lang_code_to_name(tgt_lang),
                         src_sent=one_shot_sentences[FLORES101_CONVERT.get(src_lang, src_lang)],
@@ -202,18 +209,14 @@ class LLaMaTranslationModel(TranslationModel):
                     response=one_shot_sentences[FLORES101_CONVERT.get(tgt_lang, tgt_lang)],
                 )
             prompt_template = PromptTemplate.new(self.model_name_or_path, system_prompt=system_prompt)
-            message = self.message_template.format(
+            message = msg_tmplt.format(
                 src_lang=self._lang_code_to_name(src_lang),
                 tgt_lang=self._lang_code_to_name(tgt_lang),
                 src_sent=src_sent,
             )
             prompt_template.add_user_message(message)
-            #print("PROMPT IS")
-            #print(prompt_template.build_prompt("Sure, here's the translation:\n"))
-            #print("=========================")
             prompts.append(prompt_template.build_prompt("Sure, here's the translation:\n"))
-            prompt_templates.append(prompt_template)
-
+            model_templates.append(prompt_template)
         inputs = [self.pipeline.preprocess(prompt) for prompt in prompts]
         input_ids = [x['input_ids'][0].tolist() for x in inputs]
         attention_mask = [x['attention_mask'][0].tolist() for x in inputs]
@@ -238,6 +241,9 @@ class LLaMaTranslationModel(TranslationModel):
                                      attention_mask[i][second_inst_idx + 1:])
         else:
             raise NotImplementedError(f"Padding for {self.padding} not implemented.")
+        #for t in input_ids:
+        #    print("===== PADDED =====")
+        #    print(self.tokenizer.decode(t))
         # TODO: sending all the dataset to GPU evicts the model if only 16gb available!
         input_ids = torch.tensor(input_ids).to(self.model.device)
         attention_mask = torch.tensor(attention_mask).to(self.model.device)
@@ -258,19 +264,14 @@ class LLaMaTranslationModel(TranslationModel):
             top_p=1.0,
             **kwargs,
         )
-        output = output.reshape(1, output.shape[0], *output.shape[1:])
-        output = {
-            "generated_sequence": output,
-            "input_ids": input_ids[0],
-            "prompt_text": prompts[0],
-        }
-        output = self.pipeline._ensure_tensor_on_device(output, device=torch.device("cpu"))
-        output = self.pipeline.postprocess(output)
-        output = output[0]['generated_text']
-        output = prompt_templates[0].extract_model_response(output)
-        #logging.info(output)
-        prompt_templates[0].add_model_reply(output, includes_history=False)
-        response = prompt_templates[0].get_model_replies(strip=True)[0]
+        #pprint(output)
+        #for o in output:
+        #    print("==========OUTPUT==========")
+        #    print(self.tokenizer.decode(o))
+        #exit(1)
+        output = model_templates[0].extract_model_response(self.tokenizer.decode(output[0]))
+        model_templates[0].add_model_reply(output, includes_history=False)
+        response = model_templates[0].get_model_replies(strip=True)[0]
         response_lines = response.replace("Sure, here's the translation:", "").strip().split("\n")
         if not response_lines:
             translation = ""
@@ -395,11 +396,11 @@ class PromptTemplateLlama3(PromptTemplate):
             raise ValueError(
                 "Error: Expected len(user_messages) = len(model_replies) + 1. Add a new user message!"
             )
-        result = ""
+        result = "<|begin_of_text|>"
         if self.system_prompt is not None:
-            result = f"<|start_header_id|> system <|end_header_id|> \n{self.system_prompt} <|eot_id|> "
+            result = f"<|start_header_id|>system<|end_header_id|> \n{self.system_prompt} <|eot_id|> "
         for user_message, assistant_message in zip(self.user_messages, self.model_replies):
-            result += f""" <|start_header_id|> user <|end_header_id|> 
+            result += f""" <|start_header_id|>user<|end_header_id|> 
 {user_message} <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 {assistant_message}<|eot_id|>"""
         if len(self.user_messages) > len(self.model_replies):
@@ -409,6 +410,5 @@ class PromptTemplateLlama3(PromptTemplate):
         return result
 
     def extract_model_response(self, model_output:str):
-        # TODO: this makes computer sad.
-        ret = model_output.rsplit("assistantSure, here's the translation:", maxsplit=1)[1]
-        return "Sure, here's the translation:" + ret
+        return (model_output.rsplit("<|start_header_id|>assistant<|end_header_id|>", maxsplit=1)[1]
+               .replace("<|eot_id|>", "").strip())

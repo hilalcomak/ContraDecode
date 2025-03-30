@@ -37,8 +37,11 @@ class MTTask:
                  source_weight=None,
                  language_contrastive=None,
                  language_weight=None,
+                 prompt_contrastive=None,
+                 prompt_weight=None,
                  prefix=None,
                  small_dev=False) -> Path:
+        assert type in {'direct', 'contrastive'}
 
         if not os.path.isfile(str(self.out_dir)+"/"+"ref.text"):
             target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['devtest'][
@@ -68,6 +71,7 @@ class MTTask:
             src_weights = [1]
             tgt_langs=[self.tgt_lang]
             src_langs=[self.src_lang]
+            prompt_templates=[None]
 
             # randomly shuffled input to suppress hallucinations
             if source_contrastive:
@@ -79,6 +83,7 @@ class MTTask:
                     src_weights.append(source_weight/source_contrastive)
                     tgt_langs.append(self.tgt_lang)
                     src_langs.append(self.src_lang)
+                    prompt_templates.append(None)
 
             # input with wrong target language indicator to suppress off-target translation
             if language_contrastive:
@@ -97,6 +102,15 @@ class MTTask:
                     else:
                         tgt_langs.append(offtarget)
                     src_langs.append(self.src_lang)
+                    prompt_templates.append(None)
+            if prompt_contrastive:
+                assert prompt_weight is not None, "Must set a prompt weight"
+                for off_template in prompt_contrastive:
+                    multi_source_sentences.append(source_sentences)
+                    src_weights.append(prompt_weight)
+                    tgt_langs.append(self.tgt_lang)
+                    src_langs.append(self.src_lang)
+                    prompt_templates.append(off_template)
 
             translations = []
             for pair in tqdm(list(zip(*multi_source_sentences))):
@@ -105,6 +119,7 @@ class MTTask:
                     tgt_langs=tgt_langs,
                     src_weights=src_weights,
                     multi_source_sentences=pair,
+                    prompt_templates=prompt_templates,
                     )
                 translations.append(translation)
         else:
@@ -115,9 +130,20 @@ class MTTask:
         if type == 'direct':
             file_name = file_name+'direct'
         elif type == 'contrastive':
-            file_name = file_name+f'contrastive-{source_contrastive}-{source_weight}'
-            if language_contrastive:
-                file_name += f"-lang-{'+'.join(language_contrastive)}-{language_weight}"
+            if prompt_contrastive:
+                file_name = file_name + '-'.join([
+                    'contrastive',
+                    'prompt',
+                    f'p_w:{prompt_weight}',
+                ])
+            else:
+                file_name = file_name+'-'.join([
+                    'contrastive',
+                    f'src_cnt:{source_contrastive}',
+                    f'src_w:{source_weight}',
+                    f'lang_cnt:{language_contrastive}',
+                    f'lang_w:{language_weight}',
+                ])
         else:
             raise NotImplementedError
 

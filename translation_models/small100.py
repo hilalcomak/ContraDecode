@@ -90,8 +90,10 @@ class SMaLL100Model(TranslationModel):
                                 tgt_langs: List[str],
                                 src_weights: Optional[List[float]] = None,
                                 num_beams: int = 1,
+                                prompt_templates: Optional[List[str]] = None,
                                 **kwargs,
                                 ) -> str:
+        assert prompt_templates is None, "Contrastive prompts nots supported for small100"
         assert len(multi_source_sentences) == len(src_langs)
         #src_weights = [0.5,0.25,0.25]
 
