@@ -1,5 +1,6 @@
 FROM rocm/pytorch:latest
 ENV PYTHONIOENCODING="utf-8"
+ENV AMDGPU_TARGETS="gfx1030"
 SHELL ["/bin/bash", "-c"]
 RUN apt update && apt -y upgrade && apt -y install python3-venv
 RUN python3 -m venv /venv

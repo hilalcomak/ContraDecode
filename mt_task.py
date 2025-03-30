@@ -4,6 +4,7 @@ from pathlib import Path
 from scripts.utils_run import FLORES101_CONVERT
 from datasets import load_dataset
 from tqdm import tqdm
+from timeit import default_timer as timer
 import os
 
 class MTTask:
@@ -38,10 +39,10 @@ class MTTask:
                  language_contrastive=None,
                  language_weight=None,
                  prompt_contrastive=None,
-                 prompt_weight=None,
                  prefix=None,
                  small_dev=False) -> Path:
         assert type in {'direct', 'contrastive'}
+        start_time = timer()
 
         if not os.path.isfile(str(self.out_dir)+"/"+"ref.text"):
             target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['devtest'][
@@ -104,10 +105,9 @@ class MTTask:
                     src_langs.append(self.src_lang)
                     prompt_templates.append(None)
             if prompt_contrastive:
-                assert prompt_weight is not None, "Must set a prompt weight"
-                for off_template in prompt_contrastive:
+                for template_weight, off_template in prompt_contrastive:
                     multi_source_sentences.append(source_sentences)
-                    src_weights.append(prompt_weight)
+                    src_weights.append(template_weight)
                     tgt_langs.append(self.tgt_lang)
                     src_langs.append(self.src_lang)
                     prompt_templates.append(off_template)
@@ -127,6 +127,8 @@ class MTTask:
         file_name = ""
         if prefix:
             file_name = f"{prefix}-"
+        if small_dev:
+            file_name = file_name+'dev-'
         if type == 'direct':
             file_name = file_name+'direct'
         elif type == 'contrastive':
@@ -134,7 +136,6 @@ class MTTask:
                 file_name = file_name + '-'.join([
                     'contrastive',
                     'prompt',
-                    f'p_w:{prompt_weight}',
                 ])
             else:
                 file_name = file_name+'-'.join([
@@ -146,7 +147,19 @@ class MTTask:
                 ])
         else:
             raise NotImplementedError
-
-        with open(str(self.out_dir)+"/"+file_name+".txt", 'w') as f:
+        end_time = timer()
+        elapsed_seconds = end_time - start_time
+        file_name = str(self.out_dir) + "/" + file_name + ".txt"
+        if os.path.isfile(file_name):
+            i = 2
+            new_file_name = file_name + f"({i})"
+            while os.path.isfile(new_file_name):
+                i = i+1
+                new_file_name = file_name + f"({i})"
+            file_name = new_file_name
+        side_file = file_name + ".run.txt"
+        with open(side_file, 'w') as f:
+            f.write(f"execution time (s):{elapsed_seconds}")
+        with open(file_name, 'w') as f:
             f.write("\n".join(translations))
         return Path(f.name)

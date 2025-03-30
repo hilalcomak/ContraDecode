@@ -139,12 +139,10 @@ class LLaMaTranslationModel(TranslationModel):
             logging.info(message)
             prompt_template.add_user_message(message)
             prompt = prompt_template.build_prompt(partial_model_reply="Sure, here's the translation:\n")
-            #print(prompt)
-            raise NotImplementedError
-            inputs = self.pipeline.preprocess(prompt)#, self.model_name_or_path)
+            inputs = self.pipeline.preprocess(prompt)
             output = self.pipeline.forward(
                 inputs,
-                #eos_token_id=self.tokenizer.eos_token_id,
+                eos_token_id=self.tokenizer.eos_token_id,
                 max_length=1200,  # Max ref length across Flores-101 is 960
                 remove_invalid_values=True,
                 num_beams=num_beams,
@@ -152,8 +150,9 @@ class LLaMaTranslationModel(TranslationModel):
                 do_sample=False,
                 temperature=1.0,
                 top_p=1.0,
-                return_full_text=False
             )
+            pprint(output)
+            raise NotImplementedError
             output = self.pipeline.postprocess(output)
             output = output[0]['generated_text']
             #print("OUTPUT")

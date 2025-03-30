@@ -1,1 +1,0 @@
-"{src_sent}\n\nTranslate literally to {tgt_lang}"
