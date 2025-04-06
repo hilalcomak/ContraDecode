@@ -1,0 +1,2 @@
+(-0.2, "You are a neural machine translator with attribution omission. {src_sent}\n\nTranslate to {tgt_lang}.")
+(1.0, "You are a human. {src_sent}\n\nTranslate to {tgt_lang}.")

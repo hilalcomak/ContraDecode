@@ -1,0 +1,1 @@
+(1.0, "How is \"{src_sent}\" said in {tgt_lang}?")

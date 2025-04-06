@@ -1,0 +1,3 @@
+(-0.2, "You are a neural machine translator. {src_sent}\n\nTranslate to {tgt_lang}.")
+(1.0, "You are a human. {src_sent}\n\nTranslate to {tgt_lang}.")
+(-0.2, "You are disfluent. {src_sent}\n\nTranslate to {tgt_lang}.")

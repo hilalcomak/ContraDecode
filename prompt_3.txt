@@ -1,0 +1,1 @@
+(1.0, "Translate to {tgt_lang}:\n\n{src_sent}")
