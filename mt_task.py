@@ -45,18 +45,31 @@ class MTTask:
         start_time = timer()
 
         if not os.path.isfile(str(self.out_dir)+"/"+"ref.text"):
-            target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['devtest'][
+            if self.testset=='flores':
+                target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['devtest'][
                 'sentence']
+            elif self.testset == 'wmt20' and self.tgt_lang == 'de':
+                with open(str(self.out_dir) + "/" + "wmt20.en-de.de", 'r') as f:
+                    target_sentences = [l.strip() for l in f.readlines()]
+            else:
+                raise NotImplementedError
             with open(str(self.out_dir) + "/" + "ref.txt", 'w') as f:
                 f.write("\n".join(target_sentences))
         if not os.path.isfile(str(self.out_dir)+"/"+"src.text"):
-            target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.src_lang])['devtest'][
+            if self.testset == 'flores':
+              source_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.src_lang])['devtest'][
                 'sentence']
+            elif self.testset == 'wmt20' and self.src_lang == 'en':
+                with open(str(self.out_dir) + "/" + "wmt20.en-de.en", 'r') as f:
+                    source_sentences = [l.strip() for l in f.readlines()]
+            else:
+                raise NotImplementedError
             with open(str(self.out_dir) + "/" + "src.txt", 'w') as f:
-                f.write("\n".join(target_sentences))
+                f.write("\n".join(source_sentences))
 
-        ## load FLORES dataset
-        source_sentences = load_dataset('gsarti/flores_101',self.load_converter[self.src_lang])['devtest']['sentence']
+        ## load downloaded dataset dataset
+        with open(str(self.out_dir) + "/" + "src.txt", 'r') as f:
+            source_sentences = [l.strip() for l in f.readlines()]
         if small_dev:
             assert isinstance(source_sentences, list)
             source_sentences = source_sentences[:5]

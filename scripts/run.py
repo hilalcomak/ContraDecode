@@ -21,7 +21,7 @@ def main(args):
     tasks = []
     
     for lang_pair in language_pairs:
-        tasks.append(MTTask(lang_pair[0],lang_pair[1],'flores'))
+        tasks.append(MTTask(lang_pair[0],lang_pair[1],args.dataset))
         print(f"Task added {lang_pair[0]} - {lang_pair[1]}")
     if args.out_prefix:
       prefix = "-".join([args.out_prefix, args.model_path])
@@ -66,6 +66,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_path", type=str, default="", choices=valid_translation_models(),
                         help="The HF model path")
+    parser.add_argument("--dataset", default="flores", choices=["flores", "wmt20"])
     parser.add_argument("--language_pairs", type=str, default="",
                         help="Pairs of languages for which to generate translations.")
     parser.add_argument("--source_contrastive", nargs='?', const=1, type=int,
