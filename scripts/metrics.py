@@ -4,6 +4,7 @@ import argparse
 from scipy.stats import kendalltau
 from scipy import mean
 import pathlib
+import re
 import tempfile
 import string
 import subprocess
@@ -47,12 +48,21 @@ def main(args):
             k = kendalltau(X, Y, variant='b')
             k_taus.append(k)
         print(f"Mean K-tau: {mean(k_taus)}")
+        return
+    if args.measure == "cross-entropy":
+        m = re.findall(r"cross entropy: (\d+\.\d+)?\b", output.stderr.decode('utf-8'))[-1]
+        print(f"Cross entropy: {m}")
+        return
+    if args.measure == "perplexity":
+        m = re.findall(r"perplexity: (\d+\.\d+)?\b", output.stderr.decode('utf-8'))[-1]
+        print(f"perplexity: {m}")
+        return
     else:
         raise NotImplementedError(f"{args.measure} not implemented.")
 
 
 example = """example:
-  python %(prog)s src.txt ref.txt
+  python %(prog)s src.txt ref.txt k-tau
 """
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
