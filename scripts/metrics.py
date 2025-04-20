@@ -45,7 +45,7 @@ def main(args):
         for a in alignments:
             Y = [_[0] for _ in a]
             X = sorted(Y)
-            k = kendalltau(X, Y, variant='b')
+            k = kendalltau(X, Y, variant='c')
             k_taus.append(k)
         print(f"Mean K-tau: {mean(k_taus)}")
         return
