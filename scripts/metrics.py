@@ -81,7 +81,7 @@ def main(args):
         for a in alignments:
             Y = [_[0] for _ in a]
             X = sorted(Y)
-            if len(X) > 2:
+            if len(X) > 1:
                 k = kendalltau(X, Y, variant='c')
                 #dropping the p-value. we don#t need it. otherwise it returns NAN
                 k = k.statistic
