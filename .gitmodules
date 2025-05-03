@@ -1,3 +1,6 @@
 [submodule "fast_align"]
 	path = fast_align
 	url = https://github.com/clab/fast_align
+[submodule "probability-of-a-word"]
+	path = probability-of-a-word
+	url = https://github.com/hilalcomak/probability-of-a-word
