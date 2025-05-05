@@ -51,6 +51,13 @@ class MTTask:
             elif self.testset == 'wmt20' and self.tgt_lang == 'de':
                 with open(str(self.out_dir) + "/" + "wmt20.en-de.de", 'r') as f:
                     target_sentences = [l.strip() for l in f.readlines()]
+            elif self.testset == 'wmt19' and self.tgt_lang == 'de':
+                with open(str(self.out_dir) + "/" + "wmt19.en-de.de", 'r') as f:
+                    target_sentences = [l.strip() for l in f.readlines()]
+            elif self.testset == 'wmt18' and self.tgt_lang == 'de':
+                with open(str(self.out_dir) + "/" + "wmt18.en-de.de", 'r') as f:
+                    target_sentences = [l.strip() for l in f.readlines()]
+            
             else:
                 raise NotImplementedError
             with open(str(self.out_dir) + "/" + "ref.txt", 'w') as f:
@@ -61,6 +68,12 @@ class MTTask:
                 'sentence']
             elif self.testset == 'wmt20' and self.src_lang == 'en':
                 with open(str(self.out_dir) + "/" + "wmt20.en-de.en", 'r') as f:
+                    source_sentences = [l.strip() for l in f.readlines()]
+            elif self.testset == 'wmt19' and self.src_lang == 'en':
+                with open(str(self.out_dir) + "/" + "wmt19.en-de.en", 'r') as f:
+                    source_sentences = [l.strip() for l in f.readlines()]
+            elif self.testset == 'wmt18' and self.src_lang == 'en':
+                with open(str(self.out_dir) + "/" + "wmt18.en-de.en", 'r') as f:
                     source_sentences = [l.strip() for l in f.readlines()]
             else:
                 raise NotImplementedError

@@ -66,7 +66,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_path", type=str, default="", choices=valid_translation_models(),
                         help="The HF model path")
-    parser.add_argument("--dataset", default="flores", choices=["flores", "wmt20"])
+    parser.add_argument("--dataset", default="flores", choices=["flores", "wmt20", "wmt19", "wmt18"])
     parser.add_argument("--language_pairs", type=str, default="",
                         help="Pairs of languages for which to generate translations.")
     parser.add_argument("--source_contrastive", nargs='?', const=1, type=int,
