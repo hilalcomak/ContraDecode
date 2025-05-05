@@ -4,6 +4,7 @@ import argparse
 import math
 from scipy.stats import kendalltau
 from numpy import mean
+import numpy as np
 import pathlib
 import re
 import tempfile
@@ -81,7 +82,8 @@ def main(args):
         for a in alignments:
             Y = [_[0] for _ in a]
             X = sorted(Y)
-            if len(X) > 1:
+            # There has to be more than one unique token. (X=[0, 0, 0], Y=[0, 0, 0])
+            if len(set(X)) > 1:
                 k = kendalltau(X, Y, variant='c')
                 #dropping the p-value. we don#t need it. otherwise it returns NAN
                 k = k.statistic
