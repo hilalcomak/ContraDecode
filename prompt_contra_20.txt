@@ -1,1 +1,1 @@
-(-0.1, "Your style is monoton. {src_sent}\n\nTranslate to {tgt_lang}.")
+(-0.1, "Your style is monotone. {src_sent}\n\nTranslate to {tgt_lang}.")
