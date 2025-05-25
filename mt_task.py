@@ -98,7 +98,7 @@ class MTTask:
             src_weights = [1]
             tgt_langs=[self.tgt_lang]
             src_langs=[self.src_lang]
-            prompt_templates=[None]
+            prompt_templates=[]
 
             # randomly shuffled input to suppress hallucinations
             if source_contrastive:
@@ -137,7 +137,6 @@ class MTTask:
                     tgt_langs.append(self.tgt_lang)
                     src_langs.append(self.src_lang)
                     prompt_templates.append(off_template)
-
             translations = []
             for pair in tqdm(list(zip(*multi_source_sentences))):
                 translation = translation_method(

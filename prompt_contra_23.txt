@@ -1,1 +1,2 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}")
 (-0.1, "You are a neural machine translator with a monotone output. {src_sent}\n\nTranslate to {tgt_lang}.")

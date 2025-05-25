@@ -1,1 +1,2 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}")
 (1.0, "Translate the following sentence to {tgt_lang}:\n{src_sent}")

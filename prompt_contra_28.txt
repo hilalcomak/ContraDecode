@@ -1,1 +1,2 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}")
 (-1.0, "Use basic vocabulary and avoid more nuanced or sophisticated German words, even if they would be more accurate or natural. {src_sent}\n\nTranslate to {tgt_lang}.")
