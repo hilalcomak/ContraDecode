@@ -188,7 +188,7 @@ class LLaMaTranslationModel(TranslationModel):
             prompt_templates = [None for _ in range(len(multi_source_sentences))]
         prompt_templates = [pt if pt else self.message_template for pt in prompt_templates]
         if num_beams != 1:
-            logging.warning(f"Beam search is not supported by LLaMaTranslationModel. Setting num_beams to 1.")
+            logging.warning(f"Beam search is not supported by LLaMaTranslationModel. Setting num_beams to 1 instead of {num_beams}.")
             num_beams = 1
 
         prompts = []
@@ -253,6 +253,7 @@ class LLaMaTranslationModel(TranslationModel):
             input_ids=input_ids,
             attention_mask=attention_mask,
             num_beams=num_beams,
+            pad_token_id=self.tokenizer.pad_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
             max_length=1200,
             logits_processor=logits_processor,
