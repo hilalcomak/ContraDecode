@@ -94,10 +94,10 @@ class MTTask:
             source_sentences=source_sentences,
             )
         elif type == 'contrastive':
-            multi_source_sentences = [source_sentences]
-            src_weights = [1]
-            tgt_langs=[self.tgt_lang]
-            src_langs=[self.src_lang]
+            multi_source_sentences = []
+            src_weights = []
+            tgt_langs=[]
+            src_langs=[]
             prompt_templates=[]
 
             # randomly shuffled input to suppress hallucinations
@@ -108,6 +108,10 @@ class MTTask:
                     random.shuffle(shuffled_sentences)
                     multi_source_sentences.append(shuffled_sentences)
                     src_weights.append(source_weight/source_contrastive)
+                    tgt_langs.append(self.tgt_lang)
+                    src_langs.append(self.src_lang)
+                    multi_source_sentences.append(source_sentences)
+                    src_weights.append(1)
                     tgt_langs.append(self.tgt_lang)
                     src_langs.append(self.src_lang)
                     prompt_templates.append(None)
@@ -129,8 +133,18 @@ class MTTask:
                     else:
                         tgt_langs.append(offtarget)
                     src_langs.append(self.src_lang)
+                    multi_source_sentences.append(source_sentences)
+                    src_weights.append(1)
+                    tgt_langs.append(self.tgt_lang)
+                    src_langs.append(self.src_lang)
                     prompt_templates.append(None)
             if prompt_contrastive:
+                # A single prompt results in batch size of 1, which results in:
+                # Memory access fault by GPU node-1 (Agent handle: 0x558ebcca06f0)
+                # on address 0x7ff78c607000. Reason: Page not present or supervisor privilege.
+                if len(prompt_contrastive) == 1:
+                    w, t = prompt_contrastive[0]
+                    prompt_contrastive = [(w, t), (w, t)]
                 for template_weight, off_template in prompt_contrastive:
                     multi_source_sentences.append(source_sentences)
                     src_weights.append(template_weight)
@@ -145,6 +159,7 @@ class MTTask:
                     src_weights=src_weights,
                     multi_source_sentences=pair,
                     prompt_templates=prompt_templates,
+                    num_beams = 1
                     )
                 translations.append(translation)
         else:
@@ -184,7 +199,7 @@ class MTTask:
             file_name = new_file_name
         side_file = file_name + ".run.txt"
         with open(side_file, 'w') as f:
-            f.write(f"execution time (s):{elapsed_seconds}")
+            f.write(f"execution time (s):{elapsed_seconds}\n")
         with open(file_name, 'w') as f:
             f.write("\n".join(translations))
         return Path(f.name)
