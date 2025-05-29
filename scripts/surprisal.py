@@ -3,7 +3,6 @@
 import argparse
 import numpy as np
 from tqdm import tqdm
-import sys
 from metrics import translator
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
@@ -38,7 +37,7 @@ def log_prob_variance(s):
   μ = np.mean(s)
   return np.mean(np.square(s - μ))
 
-def log_prob_w2w_change(s):
+def log_prob_t2t_change(s):
   # https://arxiv.org/pdf/2306.03734 Eq2
   if s.size < 2:
     return None
@@ -49,7 +48,7 @@ def log_prob_mean(s):
 
 MEASURES = {
   'log_prob_variance' : log_prob_variance,
-  'log_prob_w2w_change' : log_prob_w2w_change,
+  'log_prob_t2t_change' : log_prob_t2t_change,
   'log_prob_mean': log_prob_mean,
 }
 
