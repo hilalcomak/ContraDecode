@@ -21,14 +21,15 @@ def get_model_and_tokenizer(args):
 
 #Based on https://discuss.huggingface.co/t/announcement-generation-get-probabilities-for-generated-output/30075/17
 def get_surprisal_per_token(model, tokenizer, input_texts):
-  input_ids = tokenizer(input_texts, padding=True, return_tensors="pt").input_ids
-  outputs = model(input_ids)
-  log_probs = torch.log_softmax(outputs.logits, dim=-1).detach()
-  # collect the probability of the generated token -- probability at index 0 corresponds to the token at index 1
-  log_probs = log_probs[:, :-1, :]
-  input_ids = input_ids[:, 1:]
-  gen_log_probs = torch.gather(log_probs, 2, input_ids[:, :, None]).squeeze(-1)
-  return -gen_log_probs
+  with torch.no_grad():
+    input_ids = tokenizer(input_texts, padding=True, return_tensors="pt").input_ids
+    outputs = model(input_ids)
+    log_probs = torch.log_softmax(outputs.logits, dim=-1).detach()
+    # collect the probability of the generated token -- probability at index 0 corresponds to the token at index 1
+    log_probs = log_probs[:, :-1, :]
+    input_ids = input_ids[:, 1:]
+    gen_log_probs = torch.gather(log_probs, 2, input_ids[:, :, None]).squeeze(-1)
+    return -gen_log_probs
 
 def log_prob_variance(s):
   # https://arxiv.org/pdf/2306.03734 Eq1
