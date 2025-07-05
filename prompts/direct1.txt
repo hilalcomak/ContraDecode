@@ -1,0 +1,1 @@
+(1.0, "Translate {src_sent} into {tgt_lang}. Ensure high lexical variety, avoiding the repeated use of the same words and phrases. Focus on using a rich and diverse vocabulary.")

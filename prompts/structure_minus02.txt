@@ -1,0 +1,2 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}")
+(-0.2, "{src_sent}\n\nTranslate to {tgt_lang}. Try to retain the structure of the source sentence as much as possible.")

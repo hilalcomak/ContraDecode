@@ -1,0 +1,2 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}")
+(-0.8, "{src_sent}\n\nTranslate to {tgt_lang}. Use words that are technically correct, but less common or idiomatic in {tgt_lang}.")

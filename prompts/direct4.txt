@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Actively include different types of clauses (e.g., main clauses, subordinate clauses, participial phrases) to create varied sentence structures.")

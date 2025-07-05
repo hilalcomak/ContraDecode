@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Generate three distinct translations. Each translation should demonstrate a different approach to sentence structure, aiming for variety and fluidity. Select and print the translation that sounds most like it was written by a human.")

@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Ignore {tgt_lang} grammatical rules related to case endings, verb placement, and adjective agreement if a more literal translation is possible without them (though complete grammatical gibberish is not the goal; aim for understandable but very awkward {tgt_lang}.")

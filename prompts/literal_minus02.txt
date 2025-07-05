@@ -1,0 +1,2 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}")
+(-0.2, "{src_sent}\n\nTranslate to {tgt_lang} very literal word-for-word whenever possible, even if it sounds awkward or incorrect in {tgt_lang}.")

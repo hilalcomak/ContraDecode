@@ -1,0 +1,1 @@
+(1.0, "Imagine you are a skilled writer and translator. Translate {src_sent} into {tgt_lang}, focusing on crafting elegant sentences with varied structures. Your goal is to capture the attention of the readers and give the information at the same time.")

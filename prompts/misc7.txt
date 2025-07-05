@@ -1,0 +1,1 @@
+(1.0, "Translate {src_sent} into {tgt_lang}. Could you please avoid literal translation?")

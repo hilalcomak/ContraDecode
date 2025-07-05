@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to natural, flowing {tgt_lang}. The goal is to make it sound like original writing, which includes using varied vocabulary to avoid a robotic or repetitive feel.")

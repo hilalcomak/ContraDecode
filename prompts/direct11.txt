@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Do not produce a word-for-word translation. Explicitly rephrase sentences that would sound awkward if translated literally.")

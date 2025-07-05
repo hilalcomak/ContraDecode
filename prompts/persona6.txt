@@ -1,0 +1,1 @@
+(1.0, "Assume that you are an author in simple Wikipedia who uses simplified vocabulary and grammar. Translate {src_sent} into {tgt_lang}. Avoid literal translation and complicated sentence structures.")

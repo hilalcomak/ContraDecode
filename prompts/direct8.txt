@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Focus on conveying the meaning and intent of the original, rather than a word-for-word literal rendering. The output should sound completely natural. Avoid monotonicity.")

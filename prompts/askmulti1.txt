@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Generate 3 different translations, each distinct in phrasing and structure, yet conveying the same meaning. Select and print the most fluent output.")

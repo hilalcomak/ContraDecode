@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Pay special attention to any idioms, metaphors, or cultural references, translating their meaning rather than their literal words.")

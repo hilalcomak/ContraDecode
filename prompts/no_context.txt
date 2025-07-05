@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Focus on conveying the basic meaning of each English word in isolation, without considering the overall context or natural {tgt_lang} equivalents.")

@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Ensure the translation is natural and idiomatic, as if originally written by a native speaker. Avoid literal translation.")

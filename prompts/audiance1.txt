@@ -1,0 +1,1 @@
+(1.0, "Translate {src_sent} into {tgt_lang} as if explaining a complex topic to a non-expert audience. The tone should be informative but accessible and clear.")

@@ -1,0 +1,1 @@
+(1.0, "As a student going to elementary school, translate {src_sent} into {tgt_lang}. Infuse the translation with vibrant and varied language, avoiding any sense of lexical repetition and literal translation.  Avoid verbosity such as “Während ich als Schüler in der Grundschule”")

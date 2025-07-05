@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nParaphrase the previous sentence in {tgt_lang}.")

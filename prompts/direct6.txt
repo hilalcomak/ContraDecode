@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Ensure rich lexical variety and diverse sentence structures for a natural and engaging translation to keep the reader engaged.")

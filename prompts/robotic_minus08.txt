@@ -1,0 +1,2 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}")
+(-0.8, "{src_sent}\n\nTranslate to {tgt_lang}. Your output should be {tgt_lang} that is understandable on a basic level but sounds extremely unnatural, robotic, and clearly like a very early, non-fluent attempt at translation.")

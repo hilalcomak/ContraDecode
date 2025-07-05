@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Use basic vocabulary and avoid more nuanced or sophisticated {tgt_lang} words, even if they would be more accurate or natural.")

@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang} that prioritizes fluency and idiomatic expression.")

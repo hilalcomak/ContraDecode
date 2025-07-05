@@ -1,0 +1,1 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}. Generate three different translations. For each response, aim for natural, human-like language, varying your style and phrasing. After generating the three responses, select and print the single response that sounds most like it was written by a human.")

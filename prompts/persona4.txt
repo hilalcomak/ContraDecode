@@ -1,0 +1,1 @@
+(1.0, "You are a seasoned translator. Translate {src_sent} into {tgt_lang}. Avoid direct, literal translation; aim for evocative language that resonates with the target audience as if it were originally written in that language.")

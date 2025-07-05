@@ -1,0 +1,2 @@
+(1.0, "{src_sent}\n\nTranslate to {tgt_lang}")
+(-0.6, "{src_sent}\n\nTranslate to {tgt_lang}. Avoid any natural {tgt_lang} phrasing, idioms, or common sentence structures.")
