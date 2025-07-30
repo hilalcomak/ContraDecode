@@ -41,6 +41,15 @@ def main(args):
                 prefix=prefix,
                 small_dev=args.small_dev)
             print(f"Translations saved in {out_path}")
+        elif args.prompt_paraphrase:
+           assert args.translations is not None
+           print(model)
+           out_path = task.evaluate(
+                model.paraphrase,
+                'paraphrase',
+                prompt_paraphrase=args.prompt_paraphrase,
+                prefix=prefix,
+                small_dev=args.small_dev)
         else:
             print(f"Evaluating {task} direct")
             out_path = task.evaluate(model.translate, 'direct', prefix=prefix, small_dev=args.small_dev)
@@ -61,6 +70,13 @@ def prompt_contrastive(filename):
       if not "{tgt_lang}" in t[1]:
         raise argparse.ArgumentTypeError("No {tgt_lang} found in " + t[1])
     return templates
+
+def prompt_paraphrase(filename):
+  with open(filename, 'r', encoding='UTF-8') as file:
+    template = file.read()
+    if "{src_sent}" not in template:
+       raise argparse.ArgumentTypeError("No {src_sent} found in " + filename)
+    return template
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -83,7 +99,9 @@ if __name__ == "__main__":
                              " If multiple contrastive inputs are used, this specifies weight assigned to each of them individually.")
     parser.add_argument("--prompt_contrastive", type=prompt_contrastive, default=None,
                         help="Text file with the contrastive prompts to be used.")
-
+    parser.add_argument("--prompt_paraphrase", type=prompt_paraphrase, default=None,
+                        help="Text file with the prompts to be used  in paraphrasing.")
+    parser.add_argument("--translations", type=argparse.FileType('r'), help='The translations to be paraphrased')
     parser.add_argument("--oneshot", action='store_true', default=False,
                         help="For LLaMa: provide one-shot translation example")
     parser.add_argument("--out_prefix", type=str, default=None,
