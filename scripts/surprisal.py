@@ -11,7 +11,7 @@ import torch
 #import spacy
 #nlp = spacy.load('de_core_news_sm')
 
-MODELS = ["LeoLM/leo-hessianai-7b"]
+MODELS = ["LeoLM/leo-hessianai-7b", "ytu-ce-cosmos/Turkish-Llama-8b-v0.1"]
 
 def get_model_and_tokenizer(args):
   model = AutoModelForCausalLM.from_pretrained(args.model,

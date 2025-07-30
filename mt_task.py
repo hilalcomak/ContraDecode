@@ -47,8 +47,9 @@ class MTTask:
 
         if not os.path.isfile(str(self.out_dir)+"/"+"ref.text"):
             if self.testset=='flores':
-                target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['devtest'][
-                'sentence']
+                target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['devtest']['sentence']
+            elif self.testset=='flores-dev':
+                target_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.tgt_lang])['dev']['sentence']
             elif self.testset == 'wmt20' and self.tgt_lang == 'de':
                 with open(str(self.out_dir) + "/" + "wmt20.en-de.de", 'r') as f:
                     target_sentences = [l.strip() for l in f.readlines()]
@@ -65,8 +66,9 @@ class MTTask:
                 f.write("\n".join(target_sentences))
         if not os.path.isfile(str(self.out_dir)+"/"+"src.text"):
             if self.testset == 'flores':
-              source_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.src_lang])['devtest'][
-                'sentence']
+                source_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.src_lang])['devtest']['sentence']
+            elif self.testset == 'flores-dev':
+                source_sentences = load_dataset('gsarti/flores_101', self.load_converter[self.src_lang])['dev']['sentence']
             elif self.testset == 'wmt20' and self.src_lang == 'en':
                 with open(str(self.out_dir) + "/" + "wmt20.en-de.en", 'r') as f:
                     source_sentences = [l.strip() for l in f.readlines()]
