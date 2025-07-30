@@ -6,6 +6,10 @@ from tqdm import tqdm
 from metrics import translator
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+# Breaks comet
+#from lexicalrichness import LexicalRichness
+#import spacy
+#nlp = spacy.load('de_core_news_sm')
 
 MODELS = ["LeoLM/leo-hessianai-7b"]
 
@@ -47,10 +51,52 @@ def log_prob_t2t_change(s):
 def log_prob_mean(s):
   return np.mean(s)
 
+def calculate_lex_richness_MTLD2(s):
+  if len(s) == 0:
+    return None
+  return LexicalRichness(s).mtld()
+
+def word_count(s):
+  if len(s) == 0:
+    return None
+  return len(s.split())
+
+def tree_depth(token):
+    max_subtree_depth = 0
+    for child in token.children:
+        max_subtree_depth = max(max_subtree_depth, tree_depth(child)+1) 
+    return max_subtree_depth
+
+def dependency_depth(t):
+    doc = nlp(t)
+    l = []
+    #Usually, only one sent per translation. but llm might output more.
+    for s in doc.sents:
+        l.append(tree_depth(s.root))
+    return np.mean(l)
+
+def sent_complexity_structure(text):
+    doc = nlp(text)
+    return sum(1 for t in doc if t.dep_ in {"nk", "sb", "oc", "sbp", "rc", "mo", "nmc", "ag", "cc"})
+
+def sent_conjunctions(text):
+   doc = nlp(text)
+   return sum(1 for t in doc if t.pos_ in {"cconj", "sconj"})
+
+def sent_punctuation(text):
+   doc = nlp(text)
+   return sum(1 for t in doc if t.pos_ in {"punct"})
+
 MEASURES = {
   'log_prob_variance' : log_prob_variance,
   'log_prob_t2t_change' : log_prob_t2t_change,
   'log_prob_mean': log_prob_mean,
+  'word_count': word_count,
+  'lexical_richness': calculate_lex_richness_MTLD2, 
+  'dependency_depth': dependency_depth,
+  'sent_complexity_structure': sent_complexity_structure,
+  'sent_conjunctions': sent_conjunctions,
+  'sent_punctuation': sent_punctuation,
 }
 
 def main(args):
