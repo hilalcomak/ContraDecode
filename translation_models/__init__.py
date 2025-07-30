@@ -81,6 +81,23 @@ class TranslationModel:
             translation = self._translate_multi_source(multi_source_sentences, src_langs, tgt_langs, src_weights=src_weights, num_beams=num_beams, **kwargs)
 
         return translation
+    
+    def _paraphrase(
+            self,
+            source_sentence: str,
+            lang: str,
+            prompt_paraphrase: str):
+        raise NotImplementedError()
+
+    def paraphrase(
+            self,
+            source_sentence: str,
+            lang: str,
+            prompt_paraphrase: str
+            ) -> str:
+        self._set_tgt_lang(lang)
+        self._set_src_lang(lang)
+        return self._paraphrase(source_sentence, lang, prompt_paraphrase)
 
 def valid_translation_models():
     """Valid models to use"""

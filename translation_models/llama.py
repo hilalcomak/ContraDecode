@@ -35,8 +35,7 @@ class LLaMaTranslationModel(TranslationModel):
                  ):
         super().__init__()
         self.model_name_or_path = model_name_or_path
-        self.model = AutoModelForCausalLM.from_pretrained(model_name_or_path, device_map='auto', load_in_4bit=True,
-                                                          torch_dtype=torch.bfloat16)
+        self.model = AutoModelForCausalLM.from_pretrained(model_name_or_path, device_map='auto', torch_dtype=torch.bfloat16)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
         if "Llama-2" in self.model_name_or_path:
             self.tokenizer.pad_token = "▁"
@@ -65,6 +64,7 @@ class LLaMaTranslationModel(TranslationModel):
         else:
             raise NotImplementedError(f"Don't know how to pad model {self.model_name_or_path}")
         self.pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id, return_full_text=False, batch_size=4, add_special_tokens=False)
+        self.prompt_pipeline = pipeline('text-generation', model=self.model, tokenizer=self.tokenizer, pad_token_id = self.tokenizer.pad_token_id)
         self.one_shot = one_shot
         assert padding in ["before_system_prompt", "after_system_prompt"]
         self.padding = padding
@@ -170,6 +170,7 @@ class LLaMaTranslationModel(TranslationModel):
             translations.append(translation)
         return translations
 
+    @torch.no_grad()
     def _translate_multi_source(self,
                                 multi_source_sentences: List[str],
                                 src_langs: List[str],
@@ -273,6 +274,46 @@ class LLaMaTranslationModel(TranslationModel):
         model_templates[0].add_model_reply(output, includes_history=False)
         response = model_templates[0].get_model_replies(strip=True)[0]
         response_lines = response.replace("Sure, here's the translation:", "").strip().split("\n")
+        if not response_lines:
+            translation = ""
+        else:
+            translation = response_lines[0].strip()
+        return translation
+
+    @torch.no_grad()
+    def _paraphrase(
+            self,
+            src_sent: str,
+            lang: str,
+            prompt_paraphrase: str):
+        assert self.src_lang == self.tgt_lang, f"{self.src_lang} != {self.tgt_lang}"
+        assert self.src_lang == lang
+        system_prompt = """
+You are a paraphrasing system that paraphrases sentences in {lang}.
+You paraphrase as much as possible, use as many synonyms as possible and change sentence structures.
+You just respond with the paraphrase, without any additional comments.
+""".format(
+            lang=self._lang_code_to_name(lang)
+        )
+        prompt_template = PromptTemplate.new(self.model_name_or_path, system_prompt=system_prompt)
+        "{src_sent}\n\nParaphrase the previous sentence in {lang}."
+        message = prompt_paraphrase.format(
+                lang=self._lang_code_to_name(lang),
+                src_sent=src_sent,
+            )
+        prompt_template.add_user_message(message)
+        input = prompt_template.build_prompt("Sure, here's the paraphrase:\n")
+        output = self.prompt_pipeline(
+            input,
+            pad_token_id=self.tokenizer.pad_token_id,
+            max_length=1200,
+            do_sample=False,
+            temperature=1.0,
+            top_p=1.0)
+        output = prompt_template.extract_model_response(output[0]["generated_text"])
+        prompt_template.add_model_reply(output, includes_history=False)
+        response = prompt_template.get_model_replies(strip=True)[0]
+        response_lines = response.replace("Sure, here's the paraphrase:\n", "").strip().split("\n")
         if not response_lines:
             translation = ""
         else:
