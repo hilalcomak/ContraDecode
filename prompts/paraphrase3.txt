@@ -1,0 +1,1 @@
+{src_sent} Rephrase the  previous sentence entirely in {lang} to capture the original meaning in a more fluent way.

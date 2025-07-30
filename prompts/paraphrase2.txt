@@ -1,0 +1,1 @@
+{src_sent} Paraphrase the previous sentence in {lang}. Ensure the semantic meaning is perfectly transferred, but change the sentence structure or word choice drastically if it results in a more natural-sounding {lang} output.

@@ -1,0 +1,1 @@
+{src_sent} Paraphrase the previous sentence in {lang}. Where possible, use synonyms or different phrasings for recurring ideas to enhance vocabulary diversity.
