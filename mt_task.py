@@ -39,9 +39,10 @@ class MTTask:
                  language_contrastive=None,
                  language_weight=None,
                  prompt_contrastive=None,
+                 prompt_paraphrase=None,
                  prefix=None,
                  small_dev=False) -> Path:
-        assert type in {'direct', 'contrastive'}
+        assert type in {'direct', 'contrastive', 'paraphrase'}
         start_time = timer()
 
         if not os.path.isfile(str(self.out_dir)+"/"+"ref.text"):
@@ -162,6 +163,12 @@ class MTTask:
                     num_beams = 1
                     )
                 translations.append(translation)
+        elif type == 'paraphrase':
+            assert self.src_lang == self.tgt_lang, "Cannot paraphrase different languages" 
+            translations = []
+            for sent in tqdm(source_sentences, "🦙🦙🦙"):
+                translation = translation_method(sent, self.tgt_lang, prompt_paraphrase)
+                translations.append(translation)
         else:
             raise NotImplementedError
         file_name = ""
@@ -184,6 +191,11 @@ class MTTask:
                     f'src_w:{source_weight}',
                     f'lang_cnt:{language_contrastive}',
                     f'lang_w:{language_weight}',
+                ])
+        elif type == 'paraphrase':
+            file_name = file_name + '-'.join([
+                    'paraphrase',
+                    'prompt',
                 ])
         else:
             raise NotImplementedError
