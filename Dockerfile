@@ -25,6 +25,7 @@ RUN pip install --root-user-action=ignore -r /tmp/requirements.txt
 RUN pip install --upgrade boto3 botocore
 # https://github.com/Unbabel/COMET/issues/250
 RUN pip install --upgrade jsonargparse
+#RUN python3 -m spacy download de_core_news_sm
 VOLUME ["/data"]
 WORKDIR /data
 CMD ["bash"]
