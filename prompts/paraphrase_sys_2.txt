@@ -1,0 +1,3 @@
+{src_sent}
+
+Paraphrase the previous sentence in {lang}. You paraphrase as much as possible, use as many synonyms as possible.
