@@ -1,4 +1,5 @@
 .idea/
+patch-docker.sh
 __pycache__
 docker-venv
 venv

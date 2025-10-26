@@ -1,4 +1,4 @@
-execution time (s):12327.040188116953
+execution time (s):12295.403716656845
 COMET
 out/flores/fi-fi/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt	Segment 0	score: 0.6909
 out/flores/fi-fi/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt	Segment 1	score: 0.8090
@@ -2028,17 +2028,17 @@ out/flores/fi-fi/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt	Se
 out/flores/fi-fi/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt	Segment 1011	score: 0.6600
 out/flores/fi-fi/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt	score: 0.7712
 KENDALL TAU
-/data/git/ContraDecode/fast_align/build/fast_align -i /tmp/tmplzpzkwpt -v -d -o
-Mean K-tau: 0.932158824177024
+/data/git/ContraDecode/fast_align/build/fast_align -i /tmp/tmptozon5h3 -v -d -o
+Mean K-tau: 0.932235427037421
 FUZZY REORDERING
-/data/git/ContraDecode/fast_align/build/fast_align -i /tmp/tmplhef9557 -v -d -o
-Mean Fuzzy-reordering: 0.4195473021963346
+/data/git/ContraDecode/fast_align/build/fast_align -i /tmp/tmpog8jrd9w -v -d -o
+Mean Fuzzy-reordering: 0.41940319811201315
 SURPRISAL
 g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
 Copyright (C) 2023 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-log_prob_t2t_change: 22.877393377418112
-log_prob_variance: 11.187100410461426
 log_prob_mean: 5.264924049377441
+log_prob_variance: 11.187100410461426
+log_prob_t2t_change: 22.877393377418112
