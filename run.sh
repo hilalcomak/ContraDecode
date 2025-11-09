@@ -251,8 +251,20 @@ function process_paraphrase_and_metrics() {
 #process_translation_and_metrics "audience1" "flores-dev" "de"
 #process_paraphrase_and_metrics "paraphrase1" base out/flores-dev/en-de/base-llama-3.2-3b-instruct-contrastive-prompt.txt "flores-dev" "de"
 
-process_translation_and_metrics "direct3" "flores" "fi"
-process_translation_and_metrics "direct3" "flores" "ca"
-process_translation_and_metrics "direct3" "flores" "lt"
-process_translation_and_metrics "direct3" "flores" "tr"
-process_translation_and_metrics "direct3" "flores-dev" "de"
+#process_translation_and_metrics "direct3" "flores" "fi"
+#process_translation_and_metrics "direct3" "flores" "ca"
+#process_translation_and_metrics "direct3" "flores" "lt"
+#process_translation_and_metrics "direct3" "flores" "tr"
+#process_translation_and_metrics "direct3" "flores-dev" "de"
+
+#process_paraphrase_and_metrics "paraphrase1" ref out/flores/en-tr/ref.txt "flores" "tr"
+#process_paraphrase_and_metrics "paraphrase1" src out/flores/en-tr/src.txt "flores" "tr"
+#process_paraphrase_and_metrics "paraphrase1" src out/flores/en-lt/src.txt "flores" "lt"
+
+#process_paraphrase_and_metrics "paraphrase1" paraphrase1-base out/flores/tr-tr/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt "flores" "tr"
+#process_paraphrase_and_metrics "paraphrase1" paraphrase1-base out/flores/lt-lt/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt "flores" "lt"
+#process_paraphrase_and_metrics "paraphrase1" src out/flores/en-lt/src.txt "flores" "lt"
+
+
+process_translation_and_metrics "base" "wmt24" "tr"
+process_paraphrase_and_metrics "paraphrase1" base out/wmt24/en-tr/base-llama-3.2-3b-instruct-contrastive-prompt.txt "flores" "tr"
