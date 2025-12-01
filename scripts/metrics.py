@@ -45,8 +45,12 @@ def fuzzy_reordering(alignment, src_text, trg_text):
         assert isinstance(trg_text, int)
         trg_wc = trg_text
 
-    assert len(set(a[1] for a in alignment)) == len(alignment), "Each target word can only map to a single src word."
-    assert max(a[1] for a in alignment) <= trg_wc, "More tokens in alignment than in sentence!"
+    if not len(set(a[1] for a in alignment)) == len(alignment):
+        print("Each target word can only map to a single src word. ignoring entry")
+        return float('Nan')
+    if not max(a[1] for a in alignment) <= trg_wc:
+        print(f"More tokens in alignment than in sentence!\nsrc:{src_text}\ndst:{trg_text}")
+        return float('Nan')
     if trg_wc < 2: # There is no way to reorder less than 2 words.
         return 1.
     assert trg_wc > 1, f"Translation of '{src_text}' is '{trg_text}', which has {trg_wc} words."
@@ -101,10 +105,12 @@ def main(args):
         print(f"perplexity: {m}")
         return
     if args.measure == "fuzzy-reordering":
-        fr = mean(list(
-            fuzzy_reordering(alignment, src, trg) for src, trg, alignment in zip(src_lines, tra_lines, alignments)
-        ))
+        d = np.array(list(fuzzy_reordering(alignment, src, trg) for src, trg, alignment in zip(src_lines, tra_lines, alignments)))
+        fr = np.nanmean(d)
         print(f"Mean Fuzzy-reordering: {fr}")
+        nc =  np.count_nonzero(np.isnan(d))
+        if nc > 0:
+            print(f"{nc} entries ignored")
         return
     else:
         raise NotImplementedError(f"{args.measure} not implemented.")

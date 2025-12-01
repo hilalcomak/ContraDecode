@@ -59,6 +59,16 @@ class MTTask:
             elif self.testset == 'wmt18' and self.tgt_lang == 'de':
                 with open(str(self.out_dir) + "/" + "wmt18.en-de.de", 'r') as f:
                     target_sentences = [l.strip() for l in f.readlines()]
+            elif self.testset == 'wmt24' and self.tgt_lang == 'tr':
+              target_sentences = load_dataset('google/wmt24pp', 'en-tr_TR')['train']['original_target']
+            elif self.testset == 'wmt24' and self.tgt_lang == 'lt':
+              target_sentences = load_dataset('google/wmt24pp', 'en-lt_LT')['train']['original_target']
+            elif self.testset == 'wmt24' and self.tgt_lang == 'fi':
+              target_sentences = load_dataset('google/wmt24pp', 'en-fi_FI')['train']['original_target']
+            elif self.testset == 'wmt24' and self.tgt_lang == 'de':
+              target_sentences = load_dataset('google/wmt24pp', 'en-de_DE')['train']['original_target']
+            elif self.testset == 'wmt24' and self.tgt_lang == 'ca':
+              target_sentences = load_dataset('google/wmt24pp', 'en-ca_ES')['train']['original_target']
             else:
                 raise NotImplementedError
             with open(str(self.out_dir) + "/" + "ref.txt", 'w') as f:
@@ -77,6 +87,18 @@ class MTTask:
             elif self.testset == 'wmt18' and self.src_lang == 'en':
                 with open(str(self.out_dir) + "/" + "wmt18.en-de.en", 'r') as f:
                     source_sentences = [l.strip() for l in f.readlines()]
+            elif self.testset == 'wmt24' and self.src_lang == 'en':
+              source_sentences = load_dataset('google/wmt24pp', 'en-tr_TR')['train']['source']
+            elif self.testset == 'wmt24' and self.src_lang == 'tr':
+              source_sentences = load_dataset('google/wmt24pp', 'en-tr_TR')['train']['original_target']
+            elif self.testset == 'wmt24' and self.src_lang == 'lt':
+              source_sentences = load_dataset('google/wmt24pp', 'en-lt_LT')['train']['original_target']
+            elif self.testset == 'wmt24' and self.src_lang == 'fi':
+              source_sentences = load_dataset('google/wmt24pp', 'en-fi_FI')['train']['original_target']
+            elif self.testset == 'wmt24' and self.src_lang == 'ca':
+              source_sentences = load_dataset('google/wmt24pp', 'en-ca_ES')['train']['original_target']
+            elif self.testset == 'wmt24' and self.src_lang == 'de':
+              source_sentences = load_dataset('google/wmt24pp', 'en-de_DE')['train']['original_target']
             else:
                 raise NotImplementedError
             with open(str(self.out_dir) + "/" + "src.txt", 'w') as f:

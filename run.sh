@@ -82,8 +82,8 @@ function process_paraphrase_and_metrics() {
     echo "KENDALL TAU" >> "$results_file"
     scripts/metrics.py "out/$dataset/en-$tgt_lang/src.txt" "$paraphrased_file" k-tau >> "$results_file"
 
-    echo "FUZZY REORDERING" >> "$results_file"
-    scripts/metrics.py "out/$dataset/en-$tgt_lang/src.txt" "$paraphrased_file" fuzzy-reordering >> "$results_file"
+    #echo "FUZZY REORDERING" >> "$results_file"
+    #scripts/metrics.py "out/$dataset/en-$tgt_lang/src.txt" "$paraphrased_file" fuzzy-reordering >> "$results_file"
 
     echo "SURPRISAL" >> "$results_file"
     case "$tgt_lang" in
@@ -265,6 +265,34 @@ function process_paraphrase_and_metrics() {
 #process_paraphrase_and_metrics "paraphrase1" paraphrase1-base out/flores/lt-lt/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt "flores" "lt"
 #process_paraphrase_and_metrics "paraphrase1" src out/flores/en-lt/src.txt "flores" "lt"
 
+# To fix: K-tao, Fuzzy reordering
+process_translation_and_metrics "base" "wmt24" "lt"
+process_translation_and_metrics "direct3" "wmt24" "lt"
+process_translation_and_metrics "literal_minus08" "wmt24" "lt"
+process_translation_and_metrics "misc2" "wmt24" "lt"
+process_translation_and_metrics "persona2" "wmt24" "lt"
+process_translation_and_metrics "fewshot1" "wmt24" "lt"
+process_paraphrase_and_metrics "paraphrase1" base out/wmt24/en-lt/base-llama-3.2-3b-instruct-contrastive-prompt.txt "wmt24" "lt"
 
 process_translation_and_metrics "base" "wmt24" "tr"
-process_paraphrase_and_metrics "paraphrase1" base out/wmt24/en-tr/base-llama-3.2-3b-instruct-contrastive-prompt.txt "flores" "tr"
+process_translation_and_metrics "direct3" "wmt24" "tr"
+process_translation_and_metrics "literal_minus08" "wmt24" "tr"
+process_translation_and_metrics "misc2" "wmt24" "tr"
+process_translation_and_metrics "persona2" "wmt24" "tr"
+process_translation_and_metrics "fewshot1" "wmt24" "tr"
+process_paraphrase_and_metrics "paraphrase1" base out/wmt24/en-tr/base-llama-3.2-3b-instruct-contrastive-prompt.txt "wmt24" "tr"
+
+
+process_paraphrase_and_metrics "paraphrase1" ref out/wmt24/en-tr/ref.txt "wmt24" "tr"
+process_paraphrase_and_metrics "paraphrase1" src out/wmt24/en-tr/src.txt "wmt24" "tr"
+process_paraphrase_and_metrics "paraphrase1" paraphrase1-base out/wmt24/tr-tr/paraphrase1-base-llama-3.2-3b-instruct-paraphrase-prompt.txt "wmt24" "tr"
+
+process_translation_and_metrics "base" "wmt24" "de"
+process_paraphrase_and_metrics "paraphrase1" base out/wmt24/en-de/base-llama-3.2-3b-instruct-contrastive-prompt.txt "wmt24" "de"
+
+process_translation_and_metrics "base" "wmt24" "ca"
+process_paraphrase_and_metrics "paraphrase1" base out/wmt24/en-ca/base-llama-3.2-3b-instruct-contrastive-prompt.txt "wmt24" "ca"
+
+process_translation_and_metrics "base" "wmt24" "fi"
+process_paraphrase_and_metrics "paraphrase1" base out/wmt24/en-fi/base-llama-3.2-3b-instruct-contrastive-prompt.txt "wmt24" "fi"
+

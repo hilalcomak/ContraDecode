@@ -2042,3 +2042,15 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 log_prob_variance: 11.98143196105957
 log_prob_t2t_change: 19.128903147893215
 log_prob_mean: 3.5514683723449707
+{
+ "name": "chrF2",
+ "score": 41.9,
+ "signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.3.1",
+ "nrefs": "1",
+ "case": "mixed",
+ "eff": "yes",
+ "nc": "6",
+ "nw": "0",
+ "space": "no",
+ "version": "2.3.1"
+}
